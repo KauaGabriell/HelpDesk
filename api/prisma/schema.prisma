@@ -34,7 +34,7 @@ model User {
   name               String
   email              String             @unique
   passwordHash       String
-  role               Role
+  role               Role               @default(client)
   isActive           Boolean            @default(true)
   mustChangePassword Boolean            @default(false)
   createdAt          DateTime           @default(now()) @map("created_at")
