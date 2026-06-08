@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -6,4 +5,126 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Role {
+  admin
+  technician
+  client
+}
+
+enum TicketStatus {
+  open
+  in_progress
+  closed
+}
+
+enum ServiceCategory {
+  software
+  hardware
+  network
+  support
+  security
+  backup
+  others
+}
+
+model User {
+  id                 String             @id @default(uuid())
+  name               String
+  email              String             @unique
+  passwordHash       String
+  role               Role
+  isActive           Boolean            @default(true)
+  mustChangePassword Boolean            @default(false)
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+  technicianProfile  TechnicianProfile?
+  clientProfile      ClientProfile?
+  ticketServices     TicketService[]
+  servicePriceLogs   ServicePriceLog[]
+  clientTickets      Ticket[]           @relation("ClientTickets")
+  technicianTickets  Ticket[]           @relation("TechnicianTickets")
+
+  @@map("users")
+}
+
+model TechnicianProfile {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  avatarUrl    String?
+  availability String[]
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("technician_profile")
+}
+
+model ClientProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  avatarUrl String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("client_profile")
+}
+
+model Service {
+  id               String            @id @default(uuid())
+  name             String
+  serviceCategory  ServiceCategory
+  price            Decimal
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  ticketServices   TicketService[]
+  servicePriceLogs ServicePriceLog[]
+
+  @@map("services")
+}
+
+model Ticket {
+  id             String          @id @default(uuid())
+  title          String
+  description    String?
+  clientId       String
+  client         User            @relation("ClientTickets", fields: [clientId], references: [id], onDelete: Cascade)
+  technician     User            @relation("TechnicianTickets", fields: [technicianId], references: [id])
+  technicianId   String
+  status         TicketStatus    @default(open)
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  ticketServices TicketService[]
+
+  @@map("tickets")
+}
+
+model TicketService {
+  id        String   @id @default(uuid())
+  ticketId  String
+  serviceId String
+  addedById String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  service   Service  @relation(fields: [serviceId], references: [id])
+  addedBy   User     @relation(fields: [addedById], references: [id])
+  price     Decimal
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("ticket_services")
+}
+
+model ServicePriceLog {
+  id          String   @id @default(uuid())
+  serviceId   String
+  changedById String
+  service     Service  @relation(fields: [serviceId], references: [id])
+  changedBy   User     @relation(fields: [changedById], references: [id])
+  oldPrice    Decimal
+  newPrice    Decimal
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("service_price_log")
 }
