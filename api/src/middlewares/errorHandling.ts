@@ -3,6 +3,7 @@ import { ZodError, z } from "zod";
 import { AppError } from "../utils/AppError";
 
 export function errorHandling(
+	// biome-ignore lint/suspicious/noExplicitAny: <Error type>
 	error: any,
 	_request: Request,
 	response: Response,
