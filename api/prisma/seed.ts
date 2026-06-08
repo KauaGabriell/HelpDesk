@@ -3,7 +3,6 @@ import { Role, ServiceCategory } from "../src/generated/prisma/enums";
 import { prisma } from "../src/libs/prisma";
 
 const hash = await bcrypt.hash("123456", 10);
-const isValid = await bcrypt.compare("123456", hash);
 
 const adminUser = {
 	name: "admin",
