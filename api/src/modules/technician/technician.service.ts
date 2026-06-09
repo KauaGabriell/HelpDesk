@@ -1,12 +1,121 @@
+import { Role } from "../../generated/prisma/enums";
 import { prisma } from "../../libs/prisma";
 import { AppError } from "../../utils/AppError";
 import {
 	hashPassword,
 	verifyPassword,
 } from "../../utils/hashAndVerifyPassword";
-import type { ChangePasswordServiceInput } from "./technician.schema";
+import { toPublicTechnician } from "./technician.mappers";
+import type {
+	ChangePasswordServiceInput,
+	technicianCreateInput,
+	updateTechnicianServiceInput,
+} from "./technician.schema";
 
 export class TechnicianService {
+	async create(data: technicianCreateInput) {
+		const hashedPassword = await hashPassword(data.password);
+
+		const technician = await prisma.$transaction(async (prisma) => {
+			const emailAlreadyExist = await prisma.user.findUnique({
+				where: { email: data.email },
+			});
+			if (emailAlreadyExist) throw new AppError(400, "E-mail Já Cadastrado");
+			const technicianUser = await prisma.user.create({
+				data: {
+					name: data.name,
+					email: data.email,
+					passwordHash: hashedPassword,
+					role: Role.technician,
+					mustChangePassword: true,
+				},
+			});
+
+			const technicianProfile = await prisma.technicianProfile.create({
+				data: {
+					userId: technicianUser.id,
+					availability: data.availability,
+				},
+			});
+			return { technicianUser, technicianProfile };
+		});
+
+		return toPublicTechnician(technician.technicianUser);
+	}
+
+	async index() {
+		const technicians = await prisma.user.findMany({
+			where: {
+				role: Role.technician,
+			},
+			select: {
+				id: true,
+				name: true,
+				email: true,
+				role: true,
+				isActive: true,
+				mustChangePassword: true,
+				createdAt: true,
+				updatedAt: true,
+				technicianProfile: {
+					select: {
+						id: true,
+						avatarUrl: true,
+						availability: true,
+					},
+				},
+			},
+		});
+
+		return technicians;
+	}
+
+	async update({ id, ...data }: updateTechnicianServiceInput) {
+		const updateTechnician = await prisma.$transaction(async (prisma) => {
+			const userData = {
+				name: data.name,
+				email: data.email,
+				isActive: data.isActive,
+			};
+			const profileData = {
+				availability: data.availability,
+				avatarUrl: data.avatarUrl,
+			};
+
+			const user = await prisma.user.findFirst({
+				where: { id: id, role: Role.technician },
+			});
+			if (!user) throw new AppError(400, "Usuário Não Encontrado");
+
+			const userToUpdate = await prisma.user.update({
+				where: { id: id },
+				data: {
+					name: userData.name,
+					email: userData.email,
+					isActive: userData.isActive,
+				},
+				select: {
+					id: true,
+					name: true,
+					email: true,
+					role: true,
+					mustChangePassword: true,
+					isActive: true,
+				},
+			});
+
+			const technicianProfile = await prisma.technicianProfile.update({
+				where: { userId: id },
+				data: {
+					avatarUrl: profileData.avatarUrl,
+					availability: profileData.availability,
+				},
+			});
+			return { userToUpdate, technicianProfile };
+		});
+		return updateTechnician;
+	}
+
 	async changePassword({
 		userId,
 		oldPassword,

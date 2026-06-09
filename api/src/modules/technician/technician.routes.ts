@@ -7,7 +7,17 @@ const technicianRoutes = Router();
 const technicianController = new TechnicianController();
 
 technicianRoutes.use(verifyAuthentication);
-technicianRoutes.use(verifyAuthorization(["technician"]));
-technicianRoutes.patch("/me/password", technicianController.changePassword);
+
+technicianRoutes.patch(
+	"/me/password",
+	verifyAuthorization(["technician"]),
+	technicianController.changePassword,
+);
+
+technicianRoutes.use(verifyAuthorization(["admin"]));
+
+technicianRoutes.post("/", technicianController.create);
+technicianRoutes.get("/", technicianController.index);
+technicianRoutes.patch("/:id", technicianController.update);
 
 export { technicianRoutes };
