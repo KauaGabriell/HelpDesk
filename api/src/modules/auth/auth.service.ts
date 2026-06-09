@@ -7,7 +7,7 @@ import {
 	hashPassword,
 	verifyPassword,
 } from "../../utils/hashAndVerifyPassword";
-import { toPublicUser } from "./auth.mappers";
+import { toMeUser, toPublicUser } from "./auth.mappers";
 import type { LoginInput, RegisterInput } from "./auth.schema";
 
 export class AuthService {
@@ -57,5 +57,16 @@ export class AuthService {
 			token,
 			user: toPublicUser(user),
 		};
+	}
+	async getMe(userId: string) {
+		const user = await prisma.user.findUnique({
+			where: { id: userId },
+			include: {
+				clientProfile: true,
+				technicianProfile: true,
+			},
+		});
+		if (!user) throw new AppError(404, "Usuário não Encontrado");
+		return toMeUser(user);
 	}
 }

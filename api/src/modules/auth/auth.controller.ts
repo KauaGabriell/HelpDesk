@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { AppError } from "../../utils/AppError";
 import { loginSchema, registerSchema } from "./auth.schema";
 import { AuthService } from "./auth.service";
 
@@ -16,5 +17,12 @@ export class AuthController {
 
 		const result = await authService.login(data);
 		return res.status(200).json(result);
+	}
+	async getMe(req: Request, res: Response) {
+		const userId = req.user?.id;
+		if (!userId) throw new AppError(401, "Usuário Não Encontrado");
+
+		const user = await authService.getMe(userId);
+		res.status(200).json(user);
 	}
 }
