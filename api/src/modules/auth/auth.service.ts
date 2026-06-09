@@ -41,7 +41,11 @@ export class AuthService {
 		if (user.isActive === false)
 			throw new AppError(401, "Credenciais Inválidas");
 
-		await verifyPassword(data.password, user.passwordHash);
+		const passwordMatch = await verifyPassword(
+			data.password,
+			user.passwordHash,
+		);
+		if (!passwordMatch) throw new AppError(401, "Credenciais Inválidas");
 
 		if (!secret) throw new AppError(500, "JWT Secret Missing");
 		const token = jwt.sign({ role: user.role }, secret, {
