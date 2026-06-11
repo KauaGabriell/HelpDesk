@@ -12,16 +12,16 @@ const adminTechnicianRoutes = Router();
 technicianRoutes.use(verifyAuthentication);
 
 ownTechnicianRoutes.use(verifyAuthorization(["technician"]));
-ownTechnicianRoutes.patch("/password", technicianController.changePassword);
-ownTechnicianRoutes.get("/", technicianController.showOwnProfile);
+ownTechnicianRoutes.patch("/password", technicianController.changeOwnPassword);
+ownTechnicianRoutes.get("/", technicianController.getOwnProfile);
 
 ownTechnicianRoutes.use(verifyMustChangePassword);
-ownTechnicianRoutes.patch("/", technicianController.updateOwnTechnicianProfile);
+ownTechnicianRoutes.patch("/", technicianController.updateOwnProfile);
 
 adminTechnicianRoutes.use(verifyAuthorization(["admin"]));
 adminTechnicianRoutes.post("/", technicianController.create);
-adminTechnicianRoutes.get("/", technicianController.index);
-adminTechnicianRoutes.patch("/:id", technicianController.update);
+adminTechnicianRoutes.get("/", technicianController.list);
+adminTechnicianRoutes.patch("/:id", technicianController.updateByAdmin);
 
 technicianRoutes.use("/me", ownTechnicianRoutes);
 technicianRoutes.use("/", adminTechnicianRoutes);

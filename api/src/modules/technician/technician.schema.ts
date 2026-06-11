@@ -1,11 +1,11 @@
 import { z } from "zod";
 
-export const changePasswordSchema = z.object({
+export const changeTechnicianPasswordSchema = z.object({
 	oldPassword: z.string().min(5, "A Senha deve conter no mínimo 5 dígitos"),
 	newPassword: z.string().min(5, "A Senha deve conter no mínimo 5 dígitos"),
 });
 
-export const updateOwnTechnicianSchema = z
+export const updateOwnTechnicianProfileSchema = z
 	.object({
 		name: z.string().trim().min(1, "Insira um nome").optional(),
 		email: z.email("E-mail Inválido").optional(),
@@ -15,7 +15,7 @@ export const updateOwnTechnicianSchema = z
 		message: "Informe ao menos um valor para atualizar",
 	});
 
-export const technicianSchema = z.object({
+export const createTechnicianSchema = z.object({
 	name: z.string().min(2, { message: "Insira o nome" }),
 	email: z.email(),
 	password: z
@@ -37,7 +37,7 @@ export const technicianSchema = z.object({
 		]),
 });
 
-export const updateTechnicianSchema = z
+export const updateTechnicianByAdminSchema = z
 	.object({
 		name: z.string().min(2, "Nome deve ter no mínimo 2 caracteres").optional(),
 		email: z.email("Email inválido").optional(),
@@ -51,25 +51,32 @@ export const updateTechnicianSchema = z
 		message: "Informe ao menos um campo para atualizar",
 	});
 
-export const technicianParamsSchema = z.object({
+export const technicianIdParamsSchema = z.object({
 	id: z.uuid(),
 });
 
-export type changePasswordInput = z.infer<typeof changePasswordSchema>;
-export type technicianCreateInput = z.infer<typeof technicianSchema>;
-export type updateTechnicianInput = z.infer<typeof updateTechnicianSchema>;
-export type updateOwnTechnicianInput = z.infer<
-	typeof updateOwnTechnicianSchema
+export type ChangeTechnicianPasswordInput = z.infer<
+	typeof changeTechnicianPasswordSchema
+>;
+export type CreateTechnicianInput = z.infer<typeof createTechnicianSchema>;
+export type UpdateTechnicianByAdminInput = z.infer<
+	typeof updateTechnicianByAdminSchema
+>;
+export type UpdateOwnTechnicianProfileInput = z.infer<
+	typeof updateOwnTechnicianProfileSchema
 >;
 
-export type ChangePasswordServiceInput = changePasswordInput & {
-	userId: string;
-};
+export type ChangeTechnicianPasswordServiceInput =
+	ChangeTechnicianPasswordInput & {
+		userId: string;
+	};
 
-export type updateTechnicianServiceInput = updateTechnicianInput & {
-	id: string;
-};
+export type UpdateTechnicianByAdminServiceInput =
+	UpdateTechnicianByAdminInput & {
+		id: string;
+	};
 
-export type updateOwnTechnicianServiceInput = updateOwnTechnicianInput & {
-	userId: string;
-};
+export type UpdateOwnTechnicianProfileServiceInput =
+	UpdateOwnTechnicianProfileInput & {
+		userId: string;
+	};

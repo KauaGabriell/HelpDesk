@@ -7,44 +7,48 @@ import {
 } from "../../utils/hashAndVerifyPassword";
 import { toPublicTechnician } from "./technician.mappers";
 import type {
-	ChangePasswordServiceInput,
-	technicianCreateInput,
-	updateOwnTechnicianServiceInput,
-	updateTechnicianServiceInput,
+	ChangeTechnicianPasswordServiceInput,
+	CreateTechnicianInput,
+	UpdateOwnTechnicianProfileServiceInput,
+	UpdateTechnicianByAdminServiceInput,
 } from "./technician.schema";
 
 export class TechnicianService {
-	async create(data: technicianCreateInput) {
-		const hashedPassword = await hashPassword(data.password);
+	async create(input: CreateTechnicianInput) {
+		const hashedPassword = await hashPassword(input.password);
 
-		const technician = await prisma.$transaction(async (prisma) => {
-			const emailAlreadyExist = await prisma.user.findUnique({
-				where: { email: data.email },
+		const createdTechnician = await prisma.$transaction(async (prisma) => {
+			const existingUserWithEmail = await prisma.user.findUnique({
+				where: { email: input.email },
 			});
-			if (emailAlreadyExist) throw new AppError(400, "E-mail Já Cadastrado");
-			const technicianUser = await prisma.user.create({
+			if (existingUserWithEmail)
+				throw new AppError(400, "E-mail Já Cadastrado");
+			const createdTechnicianUser = await prisma.user.create({
 				data: {
-					name: data.name,
-					email: data.email,
+					name: input.name,
+					email: input.email,
 					passwordHash: hashedPassword,
 					role: Role.technician,
 					mustChangePassword: true,
 				},
 			});
 
-			const technicianProfile = await prisma.technicianProfile.create({
+			const createdTechnicianProfile = await prisma.technicianProfile.create({
 				data: {
-					userId: technicianUser.id,
-					availability: data.availability,
+					userId: createdTechnicianUser.id,
+					availability: input.availability,
 				},
 			});
-			return { technicianUser, technicianProfile };
+			return {
+				technicianUser: createdTechnicianUser,
+				technicianProfile: createdTechnicianProfile,
+			};
 		});
 
-		return toPublicTechnician(technician.technicianUser);
+		return toPublicTechnician(createdTechnician.technicianUser);
 	}
 
-	async index() {
+	async list() {
 		const technicians = await prisma.user.findMany({
 			where: {
 				role: Role.technician,
@@ -71,8 +75,8 @@ export class TechnicianService {
 		return technicians;
 	}
 
-	async showOwnProfile(userId: string) {
-		const technicianProfile = await prisma.user.findFirst({
+	async getOwnProfile(userId: string) {
+		const ownTechnicianProfile = await prisma.user.findFirst({
 			where: { id: userId, role: Role.technician },
 			select: {
 				id: true,
@@ -89,24 +93,24 @@ export class TechnicianService {
 				},
 			},
 		});
-		if (!technicianProfile) throw new AppError(404, "Não Encontrado");
-		return technicianProfile;
+		if (!ownTechnicianProfile) throw new AppError(404, "Não Encontrado");
+		return ownTechnicianProfile;
 	}
 
-	async updateOwnTechnicianProfile({
+	async updateOwnProfile({
 		userId,
-		...data
-	}: updateOwnTechnicianServiceInput) {
-		const newTechnician = await prisma.$transaction(async (prisma) => {
-			const userData = {
-				name: data.name,
-				email: data.email,
+		...input
+	}: UpdateOwnTechnicianProfileServiceInput) {
+		const updatedTechnician = await prisma.$transaction(async (prisma) => {
+			const userUpdateData = {
+				name: input.name,
+				email: input.email,
 			};
-			const profileData = {
-				avatarUrl: data.avatarUrl,
+			const profileUpdateData = {
+				avatarUrl: input.avatarUrl,
 			};
 
-			const technician = await prisma.user.findFirst({
+			const authenticatedTechnician = await prisma.user.findFirst({
 				where: { id: userId, role: Role.technician },
 				select: {
 					id: true,
@@ -117,13 +121,13 @@ export class TechnicianService {
 					},
 				},
 			});
-			if (!technician) throw new AppError(403, "Não autorizado");
-			if (!technician.technicianProfile)
+			if (!authenticatedTechnician) throw new AppError(403, "Não autorizado");
+			if (!authenticatedTechnician.technicianProfile)
 				throw new AppError(404, "Perfil de técnico não encontrado");
 
-			if (userData.email) {
+			if (userUpdateData.email) {
 				const emailOwner = await prisma.user.findUnique({
-					where: { email: userData.email },
+					where: { email: userUpdateData.email },
 					select: {
 						id: true,
 					},
@@ -132,11 +136,11 @@ export class TechnicianService {
 					throw new AppError(400, "E-mail já cadastrado");
 			}
 
-			const newTechnicianUser = await prisma.user.update({
+			const updatedTechnicianUser = await prisma.user.update({
 				where: { id: userId },
 				data: {
-					name: userData.name,
-					email: userData.email,
+					name: userUpdateData.name,
+					email: userUpdateData.email,
 				},
 				select: {
 					name: true,
@@ -145,10 +149,10 @@ export class TechnicianService {
 				},
 			});
 
-			const newTechnicianProfile = await prisma.technicianProfile.update({
+			const updatedTechnicianProfile = await prisma.technicianProfile.update({
 				where: { userId: userId },
 				data: {
-					avatarUrl: profileData.avatarUrl,
+					avatarUrl: profileUpdateData.avatarUrl,
 				},
 				select: {
 					id: true,
@@ -156,34 +160,35 @@ export class TechnicianService {
 					availability: true,
 				},
 			});
-			return { user: newTechnicianUser, profile: newTechnicianProfile };
+			return { user: updatedTechnicianUser, profile: updatedTechnicianProfile };
 		});
-		return newTechnician;
+		return updatedTechnician;
 	}
 
-	async update({ id, ...data }: updateTechnicianServiceInput) {
-		const updateTechnician = await prisma.$transaction(async (prisma) => {
-			const userData = {
-				name: data.name,
-				email: data.email,
-				isActive: data.isActive,
+	async updateByAdmin({ id, ...input }: UpdateTechnicianByAdminServiceInput) {
+		const updatedTechnician = await prisma.$transaction(async (prisma) => {
+			const userUpdateData = {
+				name: input.name,
+				email: input.email,
+				isActive: input.isActive,
 			};
-			const profileData = {
-				availability: data.availability,
-				avatarUrl: data.avatarUrl,
+			const profileUpdateData = {
+				availability: input.availability,
+				avatarUrl: input.avatarUrl,
 			};
 
-			const user = await prisma.user.findFirst({
+			const technicianToUpdate = await prisma.user.findFirst({
 				where: { id: id, role: Role.technician },
 			});
-			if (!user) throw new AppError(400, "Usuário Não Encontrado");
+			if (!technicianToUpdate)
+				throw new AppError(400, "Usuário Não Encontrado");
 
-			const userToUpdate = await prisma.user.update({
+			const updatedUser = await prisma.user.update({
 				where: { id: id },
 				data: {
-					name: userData.name,
-					email: userData.email,
-					isActive: userData.isActive,
+					name: userUpdateData.name,
+					email: userUpdateData.email,
+					isActive: userUpdateData.isActive,
 				},
 				select: {
 					id: true,
@@ -195,23 +200,26 @@ export class TechnicianService {
 				},
 			});
 
-			const technicianProfile = await prisma.technicianProfile.update({
+			const updatedTechnicianProfile = await prisma.technicianProfile.update({
 				where: { userId: id },
 				data: {
-					avatarUrl: profileData.avatarUrl,
-					availability: profileData.availability,
+					avatarUrl: profileUpdateData.avatarUrl,
+					availability: profileUpdateData.availability,
 				},
 			});
-			return { userToUpdate, technicianProfile };
+			return {
+				userToUpdate: updatedUser,
+				technicianProfile: updatedTechnicianProfile,
+			};
 		});
-		return updateTechnician;
+		return updatedTechnician;
 	}
 
-	async changePassword({
+	async changeOwnPassword({
 		userId,
 		oldPassword,
 		newPassword,
-	}: ChangePasswordServiceInput) {
+	}: ChangeTechnicianPasswordServiceInput) {
 		const user = await prisma.user.findUnique({ where: { id: userId } });
 
 		if (!user) {
@@ -230,7 +238,7 @@ export class TechnicianService {
 
 		const newHashPassword = await hashPassword(newPassword);
 
-		const userUpdated = await prisma.user.update({
+		const updatedUser = await prisma.user.update({
 			where: {
 				id: userId,
 			},
@@ -246,6 +254,6 @@ export class TechnicianService {
 				mustChangePassword: true,
 			},
 		});
-		return userUpdated;
+		return updatedUser;
 	}
 }

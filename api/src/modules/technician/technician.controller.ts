@@ -1,11 +1,11 @@
 import type { Request, Response } from "express";
 import { AppError } from "../../utils/AppError";
 import {
-	changePasswordSchema,
-	technicianParamsSchema,
-	technicianSchema,
-	updateOwnTechnicianSchema,
-	updateTechnicianSchema,
+	changeTechnicianPasswordSchema,
+	createTechnicianSchema,
+	technicianIdParamsSchema,
+	updateOwnTechnicianProfileSchema,
+	updateTechnicianByAdminSchema,
 } from "./technician.schema";
 import { TechnicianService } from "./technician.service";
 
@@ -13,54 +13,57 @@ const technicianService = new TechnicianService();
 
 class TechnicianController {
 	async create(req: Request, res: Response) {
-		const data = technicianSchema.parse(req.body);
-		const result = await technicianService.create(data);
+		const input = createTechnicianSchema.parse(req.body);
+		const result = await technicianService.create(input);
 
 		return res.status(201).json(result);
 	}
 
-	async index(_req: Request, res: Response) {
-		const technicians = await technicianService.index();
+	async list(_req: Request, res: Response) {
+		const technicians = await technicianService.list();
 		return res.status(200).json(technicians);
 	}
 
-	async showOwnProfile(req: Request, res: Response) {
+	async getOwnProfile(req: Request, res: Response) {
 		const userId = req.user?.id;
 		if (!userId) throw new AppError(401, "Não autorizado");
 
-		const result = await technicianService.showOwnProfile(userId);
+		const result = await technicianService.getOwnProfile(userId);
 		return res.status(200).json(result);
 	}
 
-	async update(req: Request, res: Response) {
-		const { id } = technicianParamsSchema.parse(req.params);
+	async updateByAdmin(req: Request, res: Response) {
+		const { id } = technicianIdParamsSchema.parse(req.params);
 
-		const data = updateTechnicianSchema.parse(req.body);
-		const result = await technicianService.update({ id, ...data });
+		const input = updateTechnicianByAdminSchema.parse(req.body);
+		const result = await technicianService.updateByAdmin({ id, ...input });
 
 		return res.status(200).json(result);
 	}
 
-	async updateOwnTechnicianProfile(req: Request, res: Response) {
+	async updateOwnProfile(req: Request, res: Response) {
 		const userId = req.user?.id;
 		if (!userId) throw new AppError(400, "Não Autorizado");
-		const data = updateOwnTechnicianSchema.parse(req.body);
+		const input = updateOwnTechnicianProfileSchema.parse(req.body);
 
-		const result = await technicianService.updateOwnTechnicianProfile({
+		const result = await technicianService.updateOwnProfile({
 			userId,
-			...data,
+			...input,
 		});
 
 		return res.status(200).json(result);
 	}
 
-	async changePassword(req: Request, res: Response) {
+	async changeOwnPassword(req: Request, res: Response) {
 		const userId = req.user?.id;
 		if (!userId) throw new AppError(401, "Usuário Não Encontrado");
 
-		const data = changePasswordSchema.parse(req.body);
+		const input = changeTechnicianPasswordSchema.parse(req.body);
 
-		const result = await technicianService.changePassword({ userId, ...data });
+		const result = await technicianService.changeOwnPassword({
+			userId,
+			...input,
+		});
 		return res.status(200).json(result);
 	}
 }
