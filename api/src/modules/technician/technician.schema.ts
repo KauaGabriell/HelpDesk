@@ -5,6 +5,16 @@ export const changePasswordSchema = z.object({
 	newPassword: z.string().min(5, "A Senha deve conter no mínimo 5 dígitos"),
 });
 
+export const updateOwnTechnicianSchema = z
+	.object({
+		name: z.string().trim().min(1, "Insira um nome").optional(),
+		email: z.email("E-mail Inválido").optional(),
+		avatarUrl: z.url("URL do avatar inválida").optional(),
+	})
+	.refine((data) => Object.keys(data).length > 0, {
+		message: "Informe ao menos um valor para atualizar",
+	});
+
 export const technicianSchema = z.object({
 	name: z.string().min(2, { message: "Insira o nome" }),
 	email: z.email(),
@@ -48,6 +58,9 @@ export const technicianParamsSchema = z.object({
 export type changePasswordInput = z.infer<typeof changePasswordSchema>;
 export type technicianCreateInput = z.infer<typeof technicianSchema>;
 export type updateTechnicianInput = z.infer<typeof updateTechnicianSchema>;
+export type updateOwnTechnicianInput = z.infer<
+	typeof updateOwnTechnicianSchema
+>;
 
 export type ChangePasswordServiceInput = changePasswordInput & {
 	userId: string;
@@ -55,4 +68,8 @@ export type ChangePasswordServiceInput = changePasswordInput & {
 
 export type updateTechnicianServiceInput = updateTechnicianInput & {
 	id: string;
+};
+
+export type updateOwnTechnicianServiceInput = updateOwnTechnicianInput & {
+	userId: string;
 };

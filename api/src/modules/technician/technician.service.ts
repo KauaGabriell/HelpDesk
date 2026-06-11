@@ -9,6 +9,7 @@ import { toPublicTechnician } from "./technician.mappers";
 import type {
 	ChangePasswordServiceInput,
 	technicianCreateInput,
+	updateOwnTechnicianServiceInput,
 	updateTechnicianServiceInput,
 } from "./technician.schema";
 
@@ -68,6 +69,96 @@ export class TechnicianService {
 		});
 
 		return technicians;
+	}
+
+	async showOwnProfile(userId: string) {
+		const technicianProfile = await prisma.user.findFirst({
+			where: { id: userId, role: Role.technician },
+			select: {
+				id: true,
+				name: true,
+				email: true,
+				role: true,
+				isActive: true,
+				technicianProfile: {
+					select: {
+						id: true,
+						avatarUrl: true,
+						availability: true,
+					},
+				},
+			},
+		});
+		if (!technicianProfile) throw new AppError(404, "Não Encontrado");
+		return technicianProfile;
+	}
+
+	async updateOwnTechnicianProfile({
+		userId,
+		...data
+	}: updateOwnTechnicianServiceInput) {
+		const newTechnician = await prisma.$transaction(async (prisma) => {
+			const userData = {
+				name: data.name,
+				email: data.email,
+			};
+			const profileData = {
+				avatarUrl: data.avatarUrl,
+			};
+
+			const technician = await prisma.user.findFirst({
+				where: { id: userId, role: Role.technician },
+				select: {
+					id: true,
+					technicianProfile: {
+						select: {
+							id: true,
+						},
+					},
+				},
+			});
+			if (!technician) throw new AppError(403, "Não autorizado");
+			if (!technician.technicianProfile)
+				throw new AppError(404, "Perfil de técnico não encontrado");
+
+			if (userData.email) {
+				const emailOwner = await prisma.user.findUnique({
+					where: { email: userData.email },
+					select: {
+						id: true,
+					},
+				});
+				if (emailOwner && emailOwner.id !== userId)
+					throw new AppError(400, "E-mail já cadastrado");
+			}
+
+			const newTechnicianUser = await prisma.user.update({
+				where: { id: userId },
+				data: {
+					name: userData.name,
+					email: userData.email,
+				},
+				select: {
+					name: true,
+					email: true,
+					role: true,
+				},
+			});
+
+			const newTechnicianProfile = await prisma.technicianProfile.update({
+				where: { userId: userId },
+				data: {
+					avatarUrl: profileData.avatarUrl,
+				},
+				select: {
+					id: true,
+					avatarUrl: true,
+					availability: true,
+				},
+			});
+			return { user: newTechnicianUser, profile: newTechnicianProfile };
+		});
+		return newTechnician;
 	}
 
 	async update({ id, ...data }: updateTechnicianServiceInput) {

@@ -4,6 +4,7 @@ import {
 	changePasswordSchema,
 	technicianParamsSchema,
 	technicianSchema,
+	updateOwnTechnicianSchema,
 	updateTechnicianSchema,
 } from "./technician.schema";
 import { TechnicianService } from "./technician.service";
@@ -23,11 +24,32 @@ class TechnicianController {
 		return res.status(200).json(technicians);
 	}
 
+	async showOwnProfile(req: Request, res: Response) {
+		const userId = req.user?.id;
+		if (!userId) throw new AppError(401, "Não autorizado");
+
+		const result = await technicianService.showOwnProfile(userId);
+		return res.status(200).json(result);
+	}
+
 	async update(req: Request, res: Response) {
 		const { id } = technicianParamsSchema.parse(req.params);
 
 		const data = updateTechnicianSchema.parse(req.body);
 		const result = await technicianService.update({ id, ...data });
+
+		return res.status(200).json(result);
+	}
+
+	async updateOwnTechnicianProfile(req: Request, res: Response) {
+		const userId = req.user?.id;
+		if (!userId) throw new AppError(400, "Não Autorizado");
+		const data = updateOwnTechnicianSchema.parse(req.body);
+
+		const result = await technicianService.updateOwnTechnicianProfile({
+			userId,
+			...data,
+		});
 
 		return res.status(200).json(result);
 	}
