@@ -1,5 +1,9 @@
 import bcrypt from "bcrypt";
-import { Role, ServiceCategory } from "../src/generated/prisma/enums";
+import {
+	Role,
+	ServiceCategory,
+	TicketStatus,
+} from "../src/generated/prisma/enums";
 import { prisma } from "../src/libs/prisma";
 
 const hash = await bcrypt.hash("123456", 10);
@@ -59,6 +63,12 @@ const technicians = [
 	},
 ];
 
+const clientUser = {
+	name: "Andre Costa",
+	email: "andre.costa@test.com",
+	password: hash,
+};
+
 const services = [
 	{
 		name: "Formatação de Computador",
@@ -93,7 +103,11 @@ const services = [
 ];
 
 const seed = async () => {
+	await prisma.ticketService.deleteMany();
+	await prisma.ticket.deleteMany();
+	await prisma.servicePriceLog.deleteMany();
 	await prisma.technicianProfile.deleteMany();
+	await prisma.clientProfile.deleteMany();
 	await prisma.user.deleteMany();
 	await prisma.service.deleteMany();
 
@@ -106,8 +120,10 @@ const seed = async () => {
 		},
 	});
 
+	const createdTechnicians = [];
+
 	for (const technician of technicians) {
-		await prisma.user.create({
+		const createdTechnician = await prisma.user.create({
 			data: {
 				name: technician.name,
 				email: technician.email,
@@ -120,19 +136,81 @@ const seed = async () => {
 					},
 				},
 			},
+			select: {
+				id: true,
+			},
 		});
+
+		createdTechnicians.push(createdTechnician);
 	}
 
+	const createdServices = [];
+
 	for (const service of services) {
-		await prisma.service.create({
+		const createdService = await prisma.service.create({
 			data: {
 				name: service.name,
 				serviceCategory: service.category,
 				price: service.price,
 				isActive: service.isActive,
 			},
+			select: {
+				id: true,
+				price: true,
+			},
 		});
+
+		createdServices.push(createdService);
 	}
+
+	const createdClient = await prisma.user.create({
+		data: {
+			name: clientUser.name,
+			email: clientUser.email,
+			passwordHash: clientUser.password,
+			role: Role.client,
+			clientProfile: {
+				create: {},
+			},
+		},
+		select: {
+			id: true,
+		},
+	});
+
+	await prisma.ticket.create({
+		data: {
+			title: "Rede lenta",
+			description: "Cliente relata lentidao constante na rede do escritorio.",
+			clientId: createdClient.id,
+			technicianId: createdTechnicians[0].id,
+			status: TicketStatus.open,
+			ticketServices: {
+				create: {
+					serviceId: createdServices[0].id,
+					addedById: createdTechnicians[0].id,
+					price: createdServices[0].price,
+				},
+			},
+		},
+	});
+
+	await prisma.ticket.create({
+		data: {
+			title: "Backup nao esta funcionando",
+			description: "Cliente informa falha ao executar rotina de backup.",
+			clientId: createdClient.id,
+			technicianId: createdTechnicians[1].id,
+			status: TicketStatus.in_progress,
+			ticketServices: {
+				create: {
+					serviceId: createdServices[2].id,
+					addedById: createdTechnicians[1].id,
+					price: createdServices[2].price,
+				},
+			},
+		},
+	});
 };
 
 seed()
