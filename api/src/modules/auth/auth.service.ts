@@ -14,7 +14,12 @@ export class AuthService {
 	async register(data: RegisterInput) {
 		const hashedPassword = await hashPassword(data.password);
 		const profile = await prisma.$transaction(async (prisma) => {
-			const user = await prisma.user.create({
+			const user = await prisma.user.findFirst({
+				where: { email: data.email },
+			});
+			if (user) throw new AppError(404, "E-mail já cadastrado!");
+
+			const newUser = await prisma.user.create({
 				data: {
 					name: data.name,
 					email: data.email,
@@ -25,14 +30,14 @@ export class AuthService {
 
 			const clientProfile = await prisma.clientProfile.create({
 				data: {
-					userId: user.id,
+					userId: newUser.id,
 				},
 			});
 
-			return { user, clientProfile };
+			return { newUser, clientProfile };
 		});
 
-		return toPublicUser(profile.user);
+		return toPublicUser(profile.newUser);
 	}
 	async login(data: LoginInput) {
 		const { secret, expiresIn } = authConfig.jwt;
