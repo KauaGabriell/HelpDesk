@@ -20,11 +20,34 @@ class ServicesService {
 		return service;
 	}
 
-	async listServicesByAdmin({ isActive }: listServicesByAdminInput) {
-		const activeServices = await prisma.service.findMany({
-			where: { isActive },
-		});
-		return activeServices;
+	async listServicesByAdmin({
+		page,
+		limit,
+		isActive,
+	}: listServicesByAdminInput) {
+		const skip = (page - 1) * limit;
+		const where = { isActive: isActive };
+
+		const [services, totalItems] = await prisma.$transaction([
+			prisma.service.findMany({
+				skip,
+				take: limit,
+				where,
+				orderBy: { createdAt: "desc" },
+			}),
+			prisma.service.count({ where }),
+		]);
+		const totalPages = Math.ceil(totalItems / limit);
+
+		return {
+			data: services,
+			pagination: {
+				totalItems,
+				totalPages,
+				currentPage: page,
+				perPage: limit,
+			},
+		};
 	}
 
 	async updateServiceByAdmin({

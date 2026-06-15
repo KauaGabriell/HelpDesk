@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { paginationQuerySchema } from "../../shared/pagination.schema";
 import { AppError } from "../../utils/AppError";
 import {
 	clientIdParamsSchema,
@@ -10,8 +11,10 @@ import { ClientService } from "./client.service";
 const clientService = new ClientService();
 
 class ClientController {
-	async list(_req: Request, res: Response) {
-		const clients = await clientService.listByAdmin();
+	async list(req: Request, res: Response) {
+		const query = paginationQuerySchema.parse(req.query);
+
+		const clients = await clientService.listByAdmin(query);
 		return res.status(200).json(clients);
 	}
 

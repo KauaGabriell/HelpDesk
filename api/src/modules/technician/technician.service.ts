@@ -1,5 +1,6 @@
 import { Role } from "../../generated/prisma/enums";
 import { prisma } from "../../libs/prisma";
+import type { PaginationQueryInput } from "../../shared/pagination.schema";
 import { AppError } from "../../utils/AppError";
 import {
 	hashPassword,
@@ -48,31 +49,40 @@ export class TechnicianService {
 		return toPublicTechnician(createdTechnician.technicianUser);
 	}
 
-	async list() {
-		const technicians = await prisma.user.findMany({
-			where: {
-				role: Role.technician,
-			},
-			select: {
-				id: true,
-				name: true,
-				email: true,
-				role: true,
-				isActive: true,
-				mustChangePassword: true,
-				createdAt: true,
-				updatedAt: true,
-				technicianProfile: {
-					select: {
-						id: true,
-						avatarUrl: true,
-						availability: true,
-					},
+	async list(query: PaginationQueryInput) {
+		const { page, limit } = query;
+		const skip = (page - 1) * limit;
+		const where = { role: Role.technician };
+		const [technicians, totalItems] = await prisma.$transaction([
+			prisma.user.findMany({
+				skip,
+				take: limit,
+				where,
+				select: {
+					id: true,
+					name: true,
+					email: true,
+					role: true,
+					isActive: true,
+					mustChangePassword: true,
 				},
-			},
-		});
+				orderBy: {
+					createdAt: "desc",
+				},
+			}),
 
-		return technicians;
+			prisma.user.count({ where }),
+		]);
+		const totalPages = Math.ceil(totalItems / limit);
+		return {
+			data: technicians,
+			pagination: {
+				totalItems,
+				totalPages,
+				currentPage: page,
+				perPage: limit,
+			},
+		};
 	}
 
 	async getOwnProfile(userId: string) {

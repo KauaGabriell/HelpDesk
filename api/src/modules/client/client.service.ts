@@ -1,5 +1,6 @@
 import { Role } from "../../generated/prisma/enums";
 import { prisma } from "../../libs/prisma";
+import type { PaginationQueryInput } from "../../shared/pagination.schema";
 import { AppError } from "../../utils/AppError";
 import { toPublicClient } from "./client.mappers";
 import type {
@@ -8,25 +9,44 @@ import type {
 } from "./client.schema";
 
 class ClientService {
-	async listByAdmin() {
-		const clients = await prisma.user.findMany({
-			where: { role: Role.client },
-			select: {
-				id: true,
-				name: true,
-				email: true,
-				role: true,
-				isActive: true,
-				clientProfile: {
-					select: {
-						id: true,
-						userId: true,
-						avatarUrl: true,
+	async listByAdmin(query: PaginationQueryInput) {
+		const { page, limit } = query;
+		const skip = (page - 1) * limit;
+
+		const [clients, totalItems] = await prisma.$transaction([
+			prisma.user.findMany({
+				skip,
+				take: limit,
+				where: { role: Role.client },
+				select: {
+					id: true,
+					name: true,
+					email: true,
+					role: true,
+					isActive: true,
+					clientProfile: {
+						select: {
+							id: true,
+							userId: true,
+							avatarUrl: true,
+						},
 					},
 				},
+				orderBy: { createdAt: "desc" },
+			}),
+
+			prisma.user.count({ where: { role: Role.client } }),
+		]);
+		const totalPages = Math.ceil(totalItems / limit);
+		return {
+			data: clients,
+			pagination: {
+				totalItems,
+				totalPages,
+				currentPage: page,
+				perPage: limit,
 			},
-		});
-		return clients;
+		};
 	}
 
 	async updateByAdmin({ userId, ...data }: UpdateClientByAdminServiceInput) {

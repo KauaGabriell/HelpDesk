@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { paginationQuerySchema } from "../../shared/pagination.schema";
 import { AppError } from "../../utils/AppError";
 import {
 	changeTechnicianPasswordSchema,
@@ -19,8 +20,10 @@ class TechnicianController {
 		return res.status(201).json(result);
 	}
 
-	async list(_req: Request, res: Response) {
-		const technicians = await technicianService.list();
+	async list(req: Request, res: Response) {
+		const query = paginationQuerySchema.parse(req.query);
+
+		const technicians = await technicianService.list(query);
 		return res.status(200).json(technicians);
 	}
 

@@ -12,6 +12,8 @@ export const createServiceSchema = z.object({
 });
 
 export const listServicesQuerySchema = z.object({
+	page: z.coerce.number().int().positive().default(1),
+	limit: z.coerce.number().int().positive().max(50).default(10),
 	isActive: z
 		.enum(["true", "false"])
 		.transform((value) => value === "true")
