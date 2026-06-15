@@ -4,11 +4,25 @@ import { verifyAuthorization } from "../../middlewares/verifyAuthorization";
 import { TicketsController } from "./tickets.controller";
 
 const ticketsRoutes = Router();
+const adminTicketRoutes = Router();
+const technicianTicketRoutes = Router();
+const clientTicketRoutes = Router();
 const ticketsController = new TicketsController();
 
 ticketsRoutes.use(verifyAuthentication);
-ticketsRoutes.use(verifyAuthorization(["client"]));
 
-ticketsRoutes.post("/", ticketsController.create);
+adminTicketRoutes.use(verifyAuthorization(["admin"]));
+adminTicketRoutes.get("/", ticketsController.listByAdmin);
+
+technicianTicketRoutes.use(verifyAuthorization(["technician"]));
+technicianTicketRoutes.get("/me", ticketsController.listByTechnician);
+
+clientTicketRoutes.use(verifyAuthorization(["client"]));
+clientTicketRoutes.post("/", ticketsController.create);
+clientTicketRoutes.get("/me", ticketsController.listByClient);
+
+ticketsRoutes.use("/admin", adminTicketRoutes);
+ticketsRoutes.use("/technician", technicianTicketRoutes);
+ticketsRoutes.use("/client", clientTicketRoutes);
 
 export { ticketsRoutes };

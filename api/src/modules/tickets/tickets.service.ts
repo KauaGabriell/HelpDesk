@@ -1,9 +1,22 @@
 import { Role, TicketStatus } from "../../generated/prisma/enums";
 import { prisma } from "../../libs/prisma";
+import type { PaginationQueryInput } from "../../shared/pagination.schema";
 import { AppError } from "../../utils/AppError";
 import type { CreateTicketServiceInput } from "./tickets.schema";
 
 class TicketsService {
+	private addTotalPrice<
+		Ticket extends { ticketServices: Array<{ price: { toString(): string } }> },
+	>(tickets: Ticket[]) {
+		return tickets.map((ticket) => {
+			const totalPrice = ticket.ticketServices.reduce((acc, ticketService) => {
+				return acc + Number(ticketService.price);
+			}, 0);
+
+			return { ...ticket, totalPrice };
+		});
+	}
+
 	async create({ clientId, ...input }: CreateTicketServiceInput) {
 		const createdTicket = await prisma.$transaction(async (tx) => {
 			const activeServices = await tx.service.findMany({
@@ -80,6 +93,135 @@ class TicketsService {
 		});
 
 		return createdTicket;
+	}
+
+	async listByAdmin(query: PaginationQueryInput) {
+		const { page, limit } = query;
+		const skip = (page - 1) * limit;
+		const [tickets, totalItems] = await prisma.$transaction([
+			prisma.ticket.findMany({
+				skip,
+				take: limit,
+				select: {
+					id: true,
+					title: true,
+					description: true,
+					status: true,
+					client: {
+						select: {
+							name: true,
+							clientProfile: { select: { avatarUrl: true } },
+						},
+					},
+					technician: {
+						select: {
+							name: true,
+							technicianProfile: { select: { avatarUrl: true } },
+						},
+					},
+					ticketServices: {
+						select: {
+							price: true,
+							service: { select: { name: true, price: true } },
+						},
+					},
+					updatedAt: true,
+				},
+				orderBy: {
+					createdAt: "desc",
+				},
+			}),
+			prisma.ticket.count(),
+		]);
+		const totalPages = Math.ceil(totalItems / limit);
+		const ticketsWithTotal = this.addTotalPrice(tickets);
+		return {
+			data: ticketsWithTotal,
+			pagination: {
+				totalItems,
+				totalPages,
+				currentPage: page,
+				perPage: limit,
+			},
+		};
+	}
+
+	async listByTechnician(userId: string, query: PaginationQueryInput) {
+		const { page, limit } = query;
+		const skip = (page - 1) * limit;
+		const [technicianTickets, totalItems] = await prisma.$transaction([
+			prisma.ticket.findMany({
+				where: { technicianId: userId },
+				skip,
+				take: limit,
+				select: {
+					id: true,
+					title: true,
+					status: true,
+					ticketServices: {
+						select: {
+							price: true,
+							service: { select: { name: true, serviceCategory: true } },
+						},
+					},
+					createdAt: true,
+				},
+				orderBy: {
+					createdAt: "desc",
+				},
+			}),
+			prisma.ticket.count({ where: { technicianId: userId } }),
+		]);
+		const totalPages = Math.ceil(totalItems / limit);
+		const ticketsWithTotal = this.addTotalPrice(technicianTickets);
+		return {
+			data: ticketsWithTotal,
+			pagination: {
+				totalItems,
+				totalPages,
+				currentPage: page,
+				perPage: limit,
+			},
+		};
+	}
+
+	async listByClient(userId: string, query: PaginationQueryInput) {
+		const { page, limit } = query;
+		const skip = (page - 1) * limit;
+		const [clientTickets, totalItems] = await prisma.$transaction([
+			prisma.ticket.findMany({
+				where: { clientId: userId },
+				skip,
+				take: limit,
+				select: {
+					id: true,
+					title: true,
+					status: true,
+					ticketServices: {
+						select: {
+							price: true,
+							service: { select: { name: true, serviceCategory: true } },
+						},
+					},
+					createdAt: true,
+				},
+				orderBy: {
+					createdAt: "desc",
+				},
+			}),
+			prisma.ticket.count({ where: { clientId: userId } }),
+		]);
+		const totalPages = Math.ceil(totalItems / limit);
+		const ticketsWithTotal = this.addTotalPrice(clientTickets);
+		return {
+			data: ticketsWithTotal,
+			pagination: {
+				totalItems,
+				totalPages,
+				currentPage: page,
+				perPage: limit,
+			},
+		};
 	}
 }
 

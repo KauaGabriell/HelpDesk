@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { paginationQuerySchema } from "../../shared/pagination.schema";
 import { AppError } from "../../utils/AppError";
 import { createTicketSchema } from "./tickets.schema";
 import { TicketsService } from "./tickets.service";
@@ -14,6 +15,35 @@ class TicketsController {
 
 		const ticket = await ticketsService.create({ clientId, ...input });
 		res.status(201).json(ticket);
+	}
+
+	async listByAdmin(req: Request, res: Response) {
+		const query = paginationQuerySchema.parse(req.query);
+
+		const tickets = await ticketsService.listByAdmin(query);
+		res.status(200).json(tickets);
+	}
+
+	async listByTechnician(req: Request, res: Response) {
+		const query = paginationQuerySchema.parse(req.query);
+		const userId = req.user?.id;
+
+		if (!userId) throw new AppError(403, "Não Autorizado");
+
+		const technicianTickets = await ticketsService.listByTechnician(
+			userId,
+			query,
+		);
+		res.status(200).json(technicianTickets);
+	}
+	async listByClient(req: Request, res: Response) {
+		const query = paginationQuerySchema.parse(req.query);
+		const userId = req.user?.id;
+
+		if (!userId) throw new AppError(403, "Não Autorizado");
+
+		const clientTickets = await ticketsService.listByClient(userId, query);
+		res.status(200).json(clientTickets);
 	}
 }
 
