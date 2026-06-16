@@ -16,14 +16,19 @@ export const ticketIdParamsSchema = z.object({
 	ticketId: z.uuid(),
 });
 
-export const ticketStatusSchema = z.object({
+export const changeTicketStatusSchema = z.object({
 	status: z.enum(TicketStatus),
 });
 
 export type CreateTicketInput = z.infer<typeof createTicketSchema>;
-export type ChangeTicketStatusInput = z.infer<typeof ticketStatusSchema>;
+export type ChangeTicketStatusInput = z.infer<typeof changeTicketStatusSchema>;
 
-export type ChangeTicketStatusServiceInput = ChangeTicketStatusInput & {
+export type StartTicketByTechnicianServiceInput = {
+	technicianId: string;
+	ticketId: string;
+};
+
+export type ChangeTicketStatusByAdminServiceInput = ChangeTicketStatusInput & {
 	ticketId: string;
 };
 

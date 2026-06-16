@@ -25,6 +25,10 @@ technicianTicketRoutes.get(
 	"/:ticketId",
 	ticketsController.getDetailsByTechnician,
 );
+technicianTicketRoutes.patch(
+	"/:ticketId/start",
+	ticketsController.startTicketByTechnician,
+);
 
 clientTicketRoutes.use(verifyAuthorization(["client"]));
 clientTicketRoutes.post("/", ticketsController.create);
