@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TicketStatus } from "../../generated/prisma/enums";
 
 export const createTicketSchema = z.object({
 	title: z.string().trim().min(1, "Insira o titulo").max(200),
@@ -15,7 +16,17 @@ export const ticketIdParamsSchema = z.object({
 	ticketId: z.uuid(),
 });
 
+export const ticketStatusSchema = z.object({
+	status: z.enum(TicketStatus),
+});
+
 export type CreateTicketInput = z.infer<typeof createTicketSchema>;
+export type ChangeTicketStatusInput = z.infer<typeof ticketStatusSchema>;
+
+export type ChangeTicketStatusServiceInput = ChangeTicketStatusInput & {
+	ticketId: string;
+};
+
 export type CreateTicketServiceInput = CreateTicketInput & {
 	clientId: string;
 };

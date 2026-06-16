@@ -1,7 +1,11 @@
 import type { Request, Response } from "express";
 import { paginationQuerySchema } from "../../shared/pagination.schema";
 import { AppError } from "../../utils/AppError";
-import { createTicketSchema, ticketIdParamsSchema } from "./tickets.schema";
+import {
+	createTicketSchema,
+	ticketIdParamsSchema,
+	ticketStatusSchema,
+} from "./tickets.schema";
 import { TicketsService } from "./tickets.service";
 
 const ticketsService = new TicketsService();
@@ -86,6 +90,17 @@ class TicketsController {
 		const ticketDetails = await ticketsService.getDetailsByAdmin(ticketId);
 
 		res.status(200).json(ticketDetails);
+	}
+	async changeTicketStatusByAdmin(req: Request, res: Response) {
+		const { ticketId } = ticketIdParamsSchema.parse(req.params);
+		const { status } = ticketStatusSchema.parse(req.body);
+
+		if (req.user?.role !== "admin") throw new AppError(403, "Não autorizado");
+		const updatedTicket = await ticketsService.changeTicketStatusByAdmin({
+			ticketId,
+			status,
+		});
+		res.status(200).json(updatedTicket);
 	}
 }
 

@@ -14,6 +14,10 @@ ticketsRoutes.use(verifyAuthentication);
 adminTicketRoutes.use(verifyAuthorization(["admin"]));
 adminTicketRoutes.get("/", ticketsController.listByAdmin);
 adminTicketRoutes.get("/:ticketId", ticketsController.getDetailsByAdmin);
+adminTicketRoutes.patch(
+	"/:ticketId",
+	ticketsController.changeTicketStatusByAdmin,
+);
 
 technicianTicketRoutes.use(verifyAuthorization(["technician"]));
 technicianTicketRoutes.get("/me", ticketsController.listByTechnician);

@@ -2,7 +2,10 @@ import { Role, TicketStatus } from "../../generated/prisma/enums";
 import { prisma } from "../../libs/prisma";
 import type { PaginationQueryInput } from "../../shared/pagination.schema";
 import { AppError } from "../../utils/AppError";
-import type { CreateTicketServiceInput } from "./tickets.schema";
+import type {
+	ChangeTicketStatusServiceInput,
+	CreateTicketServiceInput,
+} from "./tickets.schema";
 
 class TicketsService {
 	private calculateTotalPrice(
@@ -338,6 +341,50 @@ class TicketsService {
 		if (!ticketDetails) throw new AppError(404, "Chamado não encontrado");
 		const totalPrice = this.calculateTotalPrice(ticketDetails.ticketServices);
 		return { ...ticketDetails, totalPrice };
+	}
+	async changeTicketStatusByAdmin({
+		ticketId,
+		...data
+	}: ChangeTicketStatusServiceInput) {
+		const transitionRules: Record<
+			TicketStatus,
+			{ allowed: TicketStatus[]; errorMessage: string }
+		> = {
+			[TicketStatus.open]: {
+				allowed: [TicketStatus.in_progress],
+				errorMessage: "Chamado aberto so pode ser alterado para atendimento",
+			},
+			[TicketStatus.in_progress]: {
+				allowed: [TicketStatus.closed],
+				errorMessage: "Chamado em atendimento só pode ser encerrado",
+			},
+			[TicketStatus.closed]: {
+				allowed: [],
+				errorMessage: "Chamado encerrado não pode ser alterado",
+			},
+		};
+
+		const updatedTicket = await prisma.$transaction(async (prisma) => {
+			const ticket = await prisma.ticket.findUnique({
+				where: { id: ticketId },
+			});
+
+			if (!ticket) throw new AppError(404, "Chamado não encontrado");
+
+			const nextStatus = transitionRules[ticket.status];
+
+			if (!nextStatus.allowed.includes(data.status))
+				throw new AppError(400, nextStatus.errorMessage);
+
+			const updatedTicketStatus = await prisma.ticket.update({
+				where: { id: ticketId },
+				data: {
+					status: data.status,
+				},
+			});
+			return updatedTicketStatus;
+		});
+		return updatedTicket;
 	}
 }
 
