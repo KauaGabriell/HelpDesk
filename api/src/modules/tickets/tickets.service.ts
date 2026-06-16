@@ -5,13 +5,19 @@ import { AppError } from "../../utils/AppError";
 import type { CreateTicketServiceInput } from "./tickets.schema";
 
 class TicketsService {
+	private calculateTotalPrice(
+		ticketServices: Array<{ price: { toString(): string } }>,
+	) {
+		return ticketServices.reduce((acc, ticketService) => {
+			return acc + Number(ticketService.price);
+		}, 0);
+	}
+
 	private addTotalPrice<
 		Ticket extends { ticketServices: Array<{ price: { toString(): string } }> },
 	>(tickets: Ticket[]) {
 		return tickets.map((ticket) => {
-			const totalPrice = ticket.ticketServices.reduce((acc, ticketService) => {
-				return acc + Number(ticketService.price);
-			}, 0);
+			const totalPrice = this.calculateTotalPrice(ticket.ticketServices);
 
 			return { ...ticket, totalPrice };
 		});
@@ -86,15 +92,12 @@ class TicketsService {
 					},
 				},
 			});
-			const totalPrice = ticket.ticketServices.reduce((acc, ticketService) => {
-				return acc + Number(ticketService.price);
-			}, 0);
+			const totalPrice = this.calculateTotalPrice(ticket.ticketServices);
 			return { ...ticket, totalPrice };
 		});
 
 		return createdTicket;
 	}
-
 	async listByAdmin(query: PaginationQueryInput) {
 		const { page, limit } = query;
 		const skip = (page - 1) * limit;
@@ -145,7 +148,6 @@ class TicketsService {
 			},
 		};
 	}
-
 	async listByTechnician(userId: string, query: PaginationQueryInput) {
 		const { page, limit } = query;
 		const skip = (page - 1) * limit;
@@ -184,7 +186,6 @@ class TicketsService {
 			},
 		};
 	}
-
 	async listByClient(userId: string, query: PaginationQueryInput) {
 		const { page, limit } = query;
 		const skip = (page - 1) * limit;
@@ -222,6 +223,121 @@ class TicketsService {
 				perPage: limit,
 			},
 		};
+	}
+	async getDetailsByClient(clientId: string, ticketId: string) {
+		const ticketDetails = await prisma.ticket.findFirst({
+			where: {
+				clientId: clientId,
+				client: { role: Role.client },
+				id: ticketId,
+			},
+			select: {
+				id: true,
+				title: true,
+				description: true,
+				status: true,
+				ticketServices: {
+					select: {
+						price: true,
+						service: {
+							select: { id: true, name: true, serviceCategory: true },
+						},
+					},
+				},
+				createdAt: true,
+				updatedAt: true,
+				technician: {
+					select: {
+						name: true,
+						email: true,
+						technicianProfile: { select: { avatarUrl: true } },
+					},
+				},
+			},
+		});
+		if (!ticketDetails) throw new AppError(404, "Chamado não encontrado");
+		const totalPrice = this.calculateTotalPrice(ticketDetails.ticketServices);
+		return { ...ticketDetails, totalPrice };
+	}
+	async getDetailsByTechnician(technicianId: string, ticketId: string) {
+		const ticketDetails = await prisma.ticket.findFirst({
+			where: {
+				technicianId: technicianId,
+				technician: { role: Role.technician },
+				id: ticketId,
+			},
+			select: {
+				id: true,
+				title: true,
+				description: true,
+				status: true,
+				ticketServices: {
+					select: {
+						price: true,
+						service: {
+							select: { id: true, name: true, serviceCategory: true },
+						},
+					},
+				},
+				createdAt: true,
+				updatedAt: true,
+				client: {
+					select: {
+						name: true,
+						clientProfile: { select: { avatarUrl: true } },
+					},
+				},
+				technician: {
+					select: {
+						name: true,
+						email: true,
+						technicianProfile: { select: { avatarUrl: true } },
+					},
+				},
+			},
+		});
+		if (!ticketDetails) throw new AppError(404, "Chamado não encontrado");
+		const totalPrice = this.calculateTotalPrice(ticketDetails.ticketServices);
+		return { ...ticketDetails, totalPrice };
+	}
+	async getDetailsByAdmin(ticketId: string) {
+		const ticketDetails = await prisma.ticket.findUnique({
+			where: {
+				id: ticketId,
+			},
+			select: {
+				id: true,
+				title: true,
+				description: true,
+				status: true,
+				ticketServices: {
+					select: {
+						price: true,
+						service: {
+							select: { id: true, name: true, serviceCategory: true },
+						},
+					},
+				},
+				createdAt: true,
+				updatedAt: true,
+				client: {
+					select: {
+						name: true,
+						clientProfile: { select: { avatarUrl: true } },
+					},
+				},
+				technician: {
+					select: {
+						name: true,
+						email: true,
+						technicianProfile: { select: { avatarUrl: true } },
+					},
+				},
+			},
+		});
+		if (!ticketDetails) throw new AppError(404, "Chamado não encontrado");
+		const totalPrice = this.calculateTotalPrice(ticketDetails.ticketServices);
+		return { ...ticketDetails, totalPrice };
 	}
 }
 

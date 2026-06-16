@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { paginationQuerySchema } from "../../shared/pagination.schema";
 import { AppError } from "../../utils/AppError";
-import { createTicketSchema } from "./tickets.schema";
+import { createTicketSchema, ticketIdParamsSchema } from "./tickets.schema";
 import { TicketsService } from "./tickets.service";
 
 const ticketsService = new TicketsService();
@@ -28,7 +28,7 @@ class TicketsController {
 		const query = paginationQuerySchema.parse(req.query);
 		const userId = req.user?.id;
 
-		if (!userId) throw new AppError(403, "Não Autorizado");
+		if (!userId) throw new AppError(403, "Nao autorizado");
 
 		const technicianTickets = await ticketsService.listByTechnician(
 			userId,
@@ -36,14 +36,56 @@ class TicketsController {
 		);
 		res.status(200).json(technicianTickets);
 	}
+
 	async listByClient(req: Request, res: Response) {
 		const query = paginationQuerySchema.parse(req.query);
 		const userId = req.user?.id;
 
-		if (!userId) throw new AppError(403, "Não Autorizado");
+		if (!userId) throw new AppError(403, "Nao autorizado");
 
 		const clientTickets = await ticketsService.listByClient(userId, query);
 		res.status(200).json(clientTickets);
+	}
+
+	async getDetailsByClient(req: Request, res: Response) {
+		const clientId = req.user?.id;
+		if (!clientId) throw new AppError(403, "Nao autorizado");
+
+		const { ticketId } = ticketIdParamsSchema.parse(req.params);
+
+		const ticketDetails = await ticketsService.getDetailsByClient(
+			clientId,
+			ticketId,
+		);
+
+		res.status(200).json(ticketDetails);
+	}
+
+	async getDetailsByTechnician(req: Request, res: Response) {
+		const technicianId = req.user?.id;
+		if (!technicianId) throw new AppError(403, "Nao autorizado");
+
+		const { ticketId } = ticketIdParamsSchema.parse(req.params);
+
+		const ticketDetails = await ticketsService.getDetailsByTechnician(
+			technicianId,
+			ticketId,
+		);
+
+		res.status(200).json(ticketDetails);
+	}
+
+	async getDetailsByAdmin(req: Request, res: Response) {
+		const adminId = req.user?.id;
+		if (!adminId || req.user?.role !== "admin") {
+			throw new AppError(403, "Nao autorizado");
+		}
+
+		const { ticketId } = ticketIdParamsSchema.parse(req.params);
+
+		const ticketDetails = await ticketsService.getDetailsByAdmin(ticketId);
+
+		res.status(200).json(ticketDetails);
 	}
 }
 

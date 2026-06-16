@@ -13,13 +13,19 @@ ticketsRoutes.use(verifyAuthentication);
 
 adminTicketRoutes.use(verifyAuthorization(["admin"]));
 adminTicketRoutes.get("/", ticketsController.listByAdmin);
+adminTicketRoutes.get("/:ticketId", ticketsController.getDetailsByAdmin);
 
 technicianTicketRoutes.use(verifyAuthorization(["technician"]));
 technicianTicketRoutes.get("/me", ticketsController.listByTechnician);
+technicianTicketRoutes.get(
+	"/:ticketId",
+	ticketsController.getDetailsByTechnician,
+);
 
 clientTicketRoutes.use(verifyAuthorization(["client"]));
 clientTicketRoutes.post("/", ticketsController.create);
 clientTicketRoutes.get("/me", ticketsController.listByClient);
+clientTicketRoutes.get("/:ticketId", ticketsController.getDetailsByClient);
 
 ticketsRoutes.use("/admin", adminTicketRoutes);
 ticketsRoutes.use("/technician", technicianTicketRoutes);

@@ -11,6 +11,10 @@ export const createTicketSchema = z.object({
 		}),
 });
 
+export const ticketIdParamsSchema = z.object({
+	ticketId: z.uuid(),
+});
+
 export type CreateTicketInput = z.infer<typeof createTicketSchema>;
 export type CreateTicketServiceInput = CreateTicketInput & {
 	clientId: string;
