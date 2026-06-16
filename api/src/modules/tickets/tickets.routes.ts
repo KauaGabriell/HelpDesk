@@ -29,6 +29,10 @@ technicianTicketRoutes.patch(
 	"/:ticketId/start",
 	ticketsController.startTicketByTechnician,
 );
+technicianTicketRoutes.patch(
+	"/:ticketId/close",
+	ticketsController.closeTicketByTechnician,
+);
 
 clientTicketRoutes.use(verifyAuthorization(["client"]));
 clientTicketRoutes.post("/", ticketsController.create);

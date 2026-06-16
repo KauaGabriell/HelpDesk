@@ -5,7 +5,7 @@ import { AppError } from "../../utils/AppError";
 import type {
 	ChangeTicketStatusByAdminServiceInput,
 	CreateTicketServiceInput,
-	StartTicketByTechnicianServiceInput,
+	TechnicianTicketActionServiceInput,
 } from "./tickets.schema";
 
 class TicketsService {
@@ -390,7 +390,7 @@ class TicketsService {
 	async startTicketByTechnician({
 		technicianId,
 		ticketId,
-	}: StartTicketByTechnicianServiceInput) {
+	}: TechnicianTicketActionServiceInput) {
 		const startedTicket = await prisma.$transaction(async (prisma) => {
 			const ticket = await prisma.ticket.findUnique({
 				where: { id: ticketId, technicianId: technicianId },
@@ -412,6 +412,40 @@ class TicketsService {
 			return startedTicket;
 		});
 		return startedTicket;
+	}
+	async closeTicketByTechnician({
+		technicianId,
+		ticketId,
+	}: TechnicianTicketActionServiceInput) {
+		const closedTicket = await prisma.$transaction(async (prisma) => {
+			const ticket = await prisma.ticket.findUnique({
+				where: { id: ticketId, technicianId: technicianId },
+			});
+			if (!ticket) throw new AppError(404, "Chamado nÃ£o encontrado");
+
+			if (ticket.status === TicketStatus.open) {
+				throw new AppError(
+					400,
+					"Inicie o atendimento antes de encerrar o chamado",
+				);
+			}
+
+			if (ticket.status === TicketStatus.closed) {
+				throw new AppError(
+					400,
+					this.transitionRules[TicketStatus.closed].errorMessage,
+				);
+			}
+
+			const closedTicket = await prisma.ticket.update({
+				where: { id: ticketId },
+				data: {
+					status: TicketStatus.closed,
+				},
+			});
+			return closedTicket;
+		});
+		return closedTicket;
 	}
 }
 

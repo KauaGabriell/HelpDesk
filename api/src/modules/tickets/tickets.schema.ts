@@ -23,7 +23,7 @@ export const changeTicketStatusSchema = z.object({
 export type CreateTicketInput = z.infer<typeof createTicketSchema>;
 export type ChangeTicketStatusInput = z.infer<typeof changeTicketStatusSchema>;
 
-export type StartTicketByTechnicianServiceInput = {
+export type TechnicianTicketActionServiceInput = {
 	technicianId: string;
 	ticketId: string;
 };

@@ -114,6 +114,18 @@ class TicketsController {
 		});
 		res.status(200).json(startedTicket);
 	}
+	async closeTicketByTechnician(req: Request, res: Response) {
+		const { ticketId } = ticketIdParamsSchema.parse(req.params);
+
+		const technicianId = req.user?.id;
+		if (!technicianId) throw new AppError(403, "Nao autorizado");
+
+		const closedTicket = await ticketsService.closeTicketByTechnician({
+			technicianId,
+			ticketId,
+		});
+		res.status(200).json(closedTicket);
+	}
 }
 
 export { TicketsController };
