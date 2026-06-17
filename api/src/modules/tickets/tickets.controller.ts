@@ -4,6 +4,7 @@ import { AppError } from "../../utils/AppError";
 import {
 	changeTicketStatusSchema,
 	createTicketSchema,
+	extraServiceSchema,
 	ticketIdParamsSchema,
 } from "./tickets.schema";
 import { TicketsService } from "./tickets.service";
@@ -125,6 +126,20 @@ class TicketsController {
 			ticketId,
 		});
 		res.status(200).json(closedTicket);
+	}
+	async addExtraService(req: Request, res: Response) {
+		const technicianId = req.user?.id;
+		if (!technicianId) throw new AppError(403, "Nao autorizado");
+
+		const { ticketId } = ticketIdParamsSchema.parse(req.params);
+		const data = extraServiceSchema.parse(req.body);
+
+		const extraService = await ticketsService.addExtraService({
+			technicianId,
+			ticketId,
+			...data,
+		});
+		res.status(201).json(extraService);
 	}
 }
 

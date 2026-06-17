@@ -3,6 +3,7 @@ import { prisma } from "../../libs/prisma";
 import type { PaginationQueryInput } from "../../shared/pagination.schema";
 import { AppError } from "../../utils/AppError";
 import type {
+	AddExtraServiceService,
 	ChangeTicketStatusByAdminServiceInput,
 	CreateTicketServiceInput,
 	TechnicianTicketActionServiceInput,
@@ -102,6 +103,8 @@ class TicketsService {
 					client: { select: { name: true, email: true } },
 					ticketServices: {
 						select: {
+							title: true,
+							description: true,
 							price: true,
 							service: {
 								select: {
@@ -146,6 +149,8 @@ class TicketsService {
 					},
 					ticketServices: {
 						select: {
+							title: true,
+							description: true,
 							price: true,
 							service: { select: { name: true, price: true } },
 						},
@@ -184,6 +189,8 @@ class TicketsService {
 					status: true,
 					ticketServices: {
 						select: {
+							title: true,
+							description: true,
 							price: true,
 							service: { select: { name: true, serviceCategory: true } },
 						},
@@ -222,6 +229,8 @@ class TicketsService {
 					status: true,
 					ticketServices: {
 						select: {
+							title: true,
+							description: true,
 							price: true,
 							service: { select: { name: true, serviceCategory: true } },
 						},
@@ -260,6 +269,8 @@ class TicketsService {
 				status: true,
 				ticketServices: {
 					select: {
+						title: true,
+						description: true,
 						price: true,
 						service: {
 							select: { id: true, name: true, serviceCategory: true },
@@ -295,9 +306,15 @@ class TicketsService {
 				status: true,
 				ticketServices: {
 					select: {
+						title: true,
+						description: true,
 						price: true,
 						service: {
-							select: { id: true, name: true, serviceCategory: true },
+							select: {
+								id: true,
+								name: true,
+								serviceCategory: true,
+							},
 						},
 					},
 				},
@@ -334,6 +351,8 @@ class TicketsService {
 				status: true,
 				ticketServices: {
 					select: {
+						title: true,
+						description: true,
 						price: true,
 						service: {
 							select: { id: true, name: true, serviceCategory: true },
@@ -446,6 +465,35 @@ class TicketsService {
 			return closedTicket;
 		});
 		return closedTicket;
+	}
+	async addExtraService({
+		technicianId,
+		ticketId,
+		...data
+	}: AddExtraServiceService) {
+		const extraService = await prisma.$transaction(async (prisma) => {
+			const ticket = await prisma.ticket.findUnique({
+				where: { id: ticketId, technicianId },
+			});
+			if (!ticket) throw new AppError(404, "Chamado não encontrado");
+			if (ticket.status !== TicketStatus.in_progress)
+				throw new AppError(
+					400,
+					"Não é possível adicionar um serviço adicional em um chamado que esteja aberto ou fechado",
+				);
+
+			const ticketService = await prisma.ticketService.create({
+				data: {
+					title: data.title,
+					description: data.description,
+					price: data.price,
+					addedById: technicianId,
+					ticketId: ticket.id,
+				},
+			});
+			return ticketService;
+		});
+		return extraService;
 	}
 }
 

@@ -33,6 +33,10 @@ technicianTicketRoutes.patch(
 	"/:ticketId/close",
 	ticketsController.closeTicketByTechnician,
 );
+technicianTicketRoutes.post(
+	"/:ticketId/extra-services",
+	ticketsController.addExtraService,
+);
 
 clientTicketRoutes.use(verifyAuthorization(["client"]));
 clientTicketRoutes.post("/", ticketsController.create);
