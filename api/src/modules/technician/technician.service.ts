@@ -202,6 +202,17 @@ export class TechnicianService {
 			if (!technicianToUpdate)
 				throw new AppError(400, "Usuário Não Encontrado");
 
+			if (userUpdateData.email) {
+				const emailOwner = await prisma.user.findUnique({
+					where: { email: userUpdateData.email },
+					select: {
+						id: true,
+					},
+				});
+				if (emailOwner && emailOwner.id !== id)
+					throw new AppError(400, "E-mail já cadastrado");
+			}
+
 			const updatedUser = await prisma.user.update({
 				where: { id: id },
 				data: {
@@ -227,11 +238,36 @@ export class TechnicianService {
 				},
 			});
 			return {
-				userToUpdate: updatedUser,
-				technicianProfile: updatedTechnicianProfile,
+				user: updatedUser,
+				profile: updatedTechnicianProfile,
 			};
 		});
 		return updatedTechnician;
+	}
+
+	async deleteByAdmin(id: string) {
+		const technician = await prisma.user.findFirst({
+			where: { id, role: Role.technician },
+			select: { id: true },
+		});
+		if (!technician) throw new AppError(404, "Técnico não encontrado");
+
+		const inactiveTechnician = await prisma.user.update({
+			where: { id },
+			data: {
+				isActive: false,
+			},
+			select: {
+				id: true,
+				name: true,
+				email: true,
+				role: true,
+				isActive: true,
+				mustChangePassword: true,
+			},
+		});
+
+		return inactiveTechnician;
 	}
 
 	async changeOwnPassword({
@@ -280,14 +316,36 @@ export class TechnicianService {
 		technicianId,
 		file,
 	}: UpdateTechnicianAvatarServiceInput) {
-		const avatarUrl = await uploadService.saveFile(file.filename);
-		const updatedTechnician = await prisma.user.update({
+		const technician = await prisma.user.findUnique({
 			where: { id: technicianId, role: Role.technician },
-			data: { technicianProfile: { update: { avatarUrl } } },
+			select: {
+				id: true,
+				technicianProfile: { select: { avatarUrl: true } },
+			},
 		});
-		return {
-			technician: toPublicTechnician(updatedTechnician),
-			profile: { avatarUrl },
-		};
+		if (!technician) throw new AppError(403, "Não autorizado");
+		if (!technician.technicianProfile)
+			throw new AppError(404, "Perfil de técnico não encontrado");
+
+		const avatarUrl = await uploadService.saveFile(file.filename);
+
+		try {
+			const updatedTechnician = await prisma.user.update({
+				where: { id: technicianId, role: Role.technician },
+				data: { technicianProfile: { update: { avatarUrl } } },
+			});
+
+			await uploadService.deleteUploadedFileByUrl(
+				technician.technicianProfile.avatarUrl,
+			);
+
+			return {
+				user: toPublicTechnician(updatedTechnician),
+				profile: { avatarUrl },
+			};
+		} catch (error) {
+			await uploadService.deleteUploadedFileByUrl(avatarUrl);
+			throw error;
+		}
 	}
 }

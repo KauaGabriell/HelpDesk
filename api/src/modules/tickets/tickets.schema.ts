@@ -24,7 +24,7 @@ export const changeTicketStatusSchema = z.object({
 export const extraServiceSchema = z.object({
 	title: z.string().trim().min(1, "Insira um nome"),
 	description: z.string().optional(),
-	price: z
+	price: z.coerce
 		.number()
 		.positive()
 		.transform((val) => new Decimal(val)),

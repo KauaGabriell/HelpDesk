@@ -45,6 +45,14 @@ class TechnicianController {
 		return res.status(200).json(result);
 	}
 
+	async deleteByAdmin(req: Request, res: Response) {
+		const { id } = technicianIdParamsSchema.parse(req.params);
+
+		const result = await technicianService.deleteByAdmin(id);
+
+		return res.status(200).json(result);
+	}
+
 	async updateOwnProfile(req: Request, res: Response) {
 		const userId = req.user?.id;
 		if (!userId) throw new AppError(400, "Não Autorizado");

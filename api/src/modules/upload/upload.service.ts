@@ -37,6 +37,13 @@ class UploadService {
 		}
 		await fs.promises.unlink(filePath);
 	}
+
+	async deleteUploadedFileByUrl(fileUrl?: string | null) {
+		if (!fileUrl?.startsWith(`${uploadConfig.UPLOADS_URL}/`)) return;
+
+		const fileName = path.basename(fileUrl);
+		await this.deleteFile(fileName, "upload");
+	}
 }
 
 export { UploadService };

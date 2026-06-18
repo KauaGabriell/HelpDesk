@@ -4,7 +4,7 @@ import { ServiceCategory } from "../../generated/prisma/enums";
 
 export const createServiceSchema = z.object({
 	name: z.string().trim().min(1, "Informe o nome do serviço"),
-	price: z
+	price: z.coerce
 		.number()
 		.positive()
 		.transform((val) => new Decimal(val)),
@@ -23,7 +23,7 @@ export const listServicesQuerySchema = z.object({
 export const updateServiceSchema = z
 	.object({
 		name: z.string().trim().min(1, "Informe o nome do serviço").optional(),
-		price: z
+		price: z.coerce
 			.number()
 			.positive()
 			.transform((val) => new Decimal(val))

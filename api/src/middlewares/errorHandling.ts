@@ -16,8 +16,21 @@ export function errorHandling(
 	if (error instanceof ZodError)
 		return response.status(400).json({ message: z.treeifyError(error) });
 
-	if (error instanceof PrismaClientKnownRequestError && error.code === "P2002")
-		return response.status(400).json({ message: "Recurso já existente" });
+	if (error instanceof PrismaClientKnownRequestError) {
+		switch (error.code) {
+			case "P2025":
+				return response
+					.status(404)
+					.json({ message: "Registro não encontrado!" });
+			case "P2003":
+				return response.status(409).json({
+					message:
+						"Não é possível realizar esta operação porque existem registros relacionados.",
+				});
+			case "P2002":
+				return response.status(400).json({ message: "Recurso já existente" });
+		}
+	}
 
 	return response.status(500).json({ message: "Erro Interno do Servidor" });
 }

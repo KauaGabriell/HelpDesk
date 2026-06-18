@@ -30,6 +30,7 @@ adminTechnicianRoutes.use(verifyAuthorization(["admin"]));
 adminTechnicianRoutes.post("/", technicianController.create);
 adminTechnicianRoutes.get("/", technicianController.list);
 adminTechnicianRoutes.patch("/:id", technicianController.updateByAdmin);
+adminTechnicianRoutes.delete("/:id", technicianController.deleteByAdmin);
 
 technicianRoutes.use("/me", ownTechnicianRoutes);
 technicianRoutes.use("/", adminTechnicianRoutes);

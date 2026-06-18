@@ -2,6 +2,7 @@ import { Role } from "../../generated/prisma/enums";
 import { prisma } from "../../libs/prisma";
 import type { PaginationQueryInput } from "../../shared/pagination.schema";
 import { AppError } from "../../utils/AppError";
+import { toPublicUser } from "../auth/auth.mappers";
 import type { FileServiceInput } from "../upload/upload.schema";
 import { UploadService } from "../upload/upload.service";
 import { toPublicClient } from "./client.mappers";
@@ -59,6 +60,15 @@ class ClientService {
 	}
 
 	async updateByAdmin({ userId, ...data }: UpdateClientByAdminServiceInput) {
+		if (data.email) {
+			const emailOwner = await prisma.user.findUnique({
+				where: { email: data.email },
+				select: { id: true },
+			});
+			if (emailOwner && emailOwner.id !== userId)
+				throw new AppError(400, "E-mail já cadastrado");
+		}
+
 		const updatedClient = await prisma.user.update({
 			where: { id: userId, role: Role.client },
 			data: {
@@ -76,7 +86,7 @@ class ClientService {
 			where: { id: userId, role: Role.client },
 		});
 
-		return deletedUser;
+		return toPublicUser(deletedUser);
 	}
 
 	async getOwnProfile(userId: string) {
@@ -164,19 +174,41 @@ class ClientService {
 		const userDeleted = await prisma.user.delete({
 			where: { id: userId },
 		});
-		return userDeleted;
+		return toPublicUser(userDeleted);
 	}
 
 	async updateOwnAvatar({ clientId, file }: UpdateClientAvatarServiceInput) {
-		const avatarUrl = await uploadService.saveFile(file.filename);
-		const updatedClient = await prisma.user.update({
+		const client = await prisma.user.findUnique({
 			where: { id: clientId, role: Role.client },
-			data: { clientProfile: { update: { avatarUrl } } },
+			select: {
+				id: true,
+				clientProfile: { select: { avatarUrl: true } },
+			},
 		});
-		return {
-			client: toPublicClient(updatedClient),
-			profile: { avatarUrl },
-		};
+		if (!client) throw new AppError(403, "Não autorizado");
+		if (!client.clientProfile)
+			throw new AppError(404, "Perfil de cliente não encontrado");
+
+		const avatarUrl = await uploadService.saveFile(file.filename);
+
+		try {
+			const updatedClient = await prisma.user.update({
+				where: { id: clientId, role: Role.client },
+				data: { clientProfile: { update: { avatarUrl } } },
+			});
+
+			await uploadService.deleteUploadedFileByUrl(
+				client.clientProfile.avatarUrl,
+			);
+
+			return {
+				user: toPublicClient(updatedClient),
+				profile: { avatarUrl },
+			};
+		} catch (error) {
+			await uploadService.deleteUploadedFileByUrl(avatarUrl);
+			throw error;
+		}
 	}
 }
 
