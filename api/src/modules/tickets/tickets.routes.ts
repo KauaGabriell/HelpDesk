@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { verifyAuthentication } from "../../middlewares/verifyAuthentication";
 import { verifyAuthorization } from "../../middlewares/verifyAuthorization";
+import { verifyMustChangePassword } from "../../middlewares/verifyMustChangePassword";
 import { TicketsController } from "./tickets.controller";
 
 const ticketsRoutes = Router();
@@ -20,6 +21,7 @@ adminTicketRoutes.patch(
 );
 
 technicianTicketRoutes.use(verifyAuthorization(["technician"]));
+technicianTicketRoutes.use(verifyMustChangePassword);
 technicianTicketRoutes.get("/me", ticketsController.listByTechnician);
 technicianTicketRoutes.get(
 	"/:ticketId",
