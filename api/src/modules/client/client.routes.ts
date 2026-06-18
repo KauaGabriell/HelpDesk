@@ -1,4 +1,6 @@
 import { Router } from "express";
+import multer from "multer";
+import uploadConfig from "../../config/upload";
 import { verifyAuthentication } from "../../middlewares/verifyAuthentication";
 import { verifyAuthorization } from "../../middlewares/verifyAuthorization";
 import { ClientController } from "./client.controller";
@@ -8,6 +10,7 @@ const ownClientRoutes = Router();
 const adminClientRoutes = Router();
 
 const clientController = new ClientController();
+const upload = multer(uploadConfig.MULTER);
 
 clientRoutes.use(verifyAuthentication);
 
@@ -19,6 +22,11 @@ adminClientRoutes.delete("/:userId", clientController.deleteByAdmin);
 ownClientRoutes.use(verifyAuthorization(["client"]));
 ownClientRoutes.get("/", clientController.getOwnProfile);
 ownClientRoutes.patch("/", clientController.updateOwnProfile);
+ownClientRoutes.patch(
+	"/avatar",
+	upload.single("avatar"),
+	clientController.updateOwnAvatar,
+);
 ownClientRoutes.delete("/", clientController.deleteOwnProfile);
 
 clientRoutes.use("/me", ownClientRoutes);

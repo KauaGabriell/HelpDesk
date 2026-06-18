@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { paginationQuerySchema } from "../../shared/pagination.schema";
 import { AppError } from "../../utils/AppError";
+import { fileSchema } from "../upload/upload.schema";
 import {
 	changeTechnicianPasswordSchema,
 	createTechnicianSchema,
@@ -68,6 +69,17 @@ class TechnicianController {
 			...input,
 		});
 		return res.status(200).json(result);
+	}
+	async updateOwnAvatar(req: Request, res: Response) {
+		const technicianId = req.user?.id;
+		if (!technicianId) throw new AppError(403, "Não autorizado");
+
+		const file = fileSchema.parse(req.file);
+		const updatedTechnicianAvatar = await technicianService.updateOwnAvatar({
+			technicianId,
+			file,
+		});
+		res.status(200).json(updatedTechnicianAvatar);
 	}
 }
 

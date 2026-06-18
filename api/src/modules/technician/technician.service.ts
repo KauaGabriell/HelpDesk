@@ -6,6 +6,8 @@ import {
 	hashPassword,
 	verifyPassword,
 } from "../../utils/hashAndVerifyPassword";
+import type { FileServiceInput } from "../upload/upload.schema";
+import { UploadService } from "../upload/upload.service";
 import { toPublicTechnician } from "./technician.mappers";
 import type {
 	ChangeTechnicianPasswordServiceInput,
@@ -13,6 +15,13 @@ import type {
 	UpdateOwnTechnicianProfileServiceInput,
 	UpdateTechnicianByAdminServiceInput,
 } from "./technician.schema";
+
+type UpdateTechnicianAvatarServiceInput = {
+	technicianId: string;
+	file: FileServiceInput;
+};
+
+const uploadService = new UploadService();
 
 export class TechnicianService {
 	async create(input: CreateTechnicianInput) {
@@ -265,5 +274,20 @@ export class TechnicianService {
 			},
 		});
 		return updatedUser;
+	}
+
+	async updateOwnAvatar({
+		technicianId,
+		file,
+	}: UpdateTechnicianAvatarServiceInput) {
+		const avatarUrl = await uploadService.saveFile(file.filename);
+		const updatedTechnician = await prisma.user.update({
+			where: { id: technicianId, role: Role.technician },
+			data: { technicianProfile: { update: { avatarUrl } } },
+		});
+		return {
+			technician: toPublicTechnician(updatedTechnician),
+			profile: { avatarUrl },
+		};
 	}
 }

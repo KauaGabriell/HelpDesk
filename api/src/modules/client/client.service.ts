@@ -2,11 +2,20 @@ import { Role } from "../../generated/prisma/enums";
 import { prisma } from "../../libs/prisma";
 import type { PaginationQueryInput } from "../../shared/pagination.schema";
 import { AppError } from "../../utils/AppError";
+import type { FileServiceInput } from "../upload/upload.schema";
+import { UploadService } from "../upload/upload.service";
 import { toPublicClient } from "./client.mappers";
 import type {
 	UpdateClientByAdminServiceInput,
 	UpdateOwnClientProfileServiceInput,
 } from "./client.schema";
+
+const uploadService = new UploadService();
+
+type UpdateClientAvatarServiceInput = {
+	clientId: string;
+	file: FileServiceInput;
+};
 
 class ClientService {
 	async listByAdmin(query: PaginationQueryInput) {
@@ -156,6 +165,18 @@ class ClientService {
 			where: { id: userId },
 		});
 		return userDeleted;
+	}
+
+	async updateOwnAvatar({ clientId, file }: UpdateClientAvatarServiceInput) {
+		const avatarUrl = await uploadService.saveFile(file.filename);
+		const updatedClient = await prisma.user.update({
+			where: { id: clientId, role: Role.client },
+			data: { clientProfile: { update: { avatarUrl } } },
+		});
+		return {
+			client: toPublicClient(updatedClient),
+			profile: { avatarUrl },
+		};
 	}
 }
 

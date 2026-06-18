@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { paginationQuerySchema } from "../../shared/pagination.schema";
 import { AppError } from "../../utils/AppError";
+import { fileSchema } from "../upload/upload.schema";
 import {
 	clientIdParamsSchema,
 	updateClientByAdminSchema,
@@ -65,6 +66,18 @@ class ClientController {
 
 		await clientService.deleteOwnProfile(userId);
 		res.status(200).json({ message: "Sua conta foi deletada!" });
+	}
+
+	async updateOwnAvatar(req: Request, res: Response) {
+		const clientId = req.user?.id;
+		if (!clientId) throw new AppError(403, "Não autorizado");
+
+		const file = fileSchema.parse(req.file);
+		const updatedClientAvatar = await clientService.updateOwnAvatar({
+			clientId,
+			file,
+		});
+		res.status(200).json(updatedClientAvatar);
 	}
 }
 
