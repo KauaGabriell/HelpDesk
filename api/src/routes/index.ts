@@ -4,6 +4,7 @@ import { clientRoutes } from "../modules/client/client.routes";
 import { serviceRoutes } from "../modules/services/services.routes";
 import { technicianRoutes } from "../modules/technician/technician.routes";
 import { ticketsRoutes } from "../modules/tickets/tickets.routes";
+import { uploadRoutes } from "../modules/upload/upload.routes";
 
 const routes = Router();
 
@@ -12,5 +13,6 @@ routes.use("/technician", technicianRoutes);
 routes.use("/client", clientRoutes);
 routes.use("/services", serviceRoutes);
 routes.use("/tickets", ticketsRoutes);
+routes.use("/uploads", uploadRoutes);
 
 export { routes };
