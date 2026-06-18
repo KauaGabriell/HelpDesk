@@ -46,6 +46,8 @@ model User {
   clientTickets      Ticket[]           @relation("ClientTickets")
   technicianTickets  Ticket[]           @relation("TechnicianTickets")
 
+  @@index([role])
+  @@index([isActive])
   @@map("users")
 }
 
@@ -83,6 +85,8 @@ model Service {
   ticketServices   TicketService[]
   servicePriceLogs ServicePriceLog[]
 
+  @@index([isActive])
+  @@index([serviceCategory])
   @@map("services")
 }
 
@@ -99,6 +103,10 @@ model Ticket {
   updatedAt      DateTime        @updatedAt @map("updated_at")
   ticketServices TicketService[]
 
+  @@index([clientId])
+  @@index([technicianId])
+  @@index([status])
+  @@index([createdAt])
   @@map("tickets")
 }
 
@@ -115,6 +123,9 @@ model TicketService {
   price       Decimal
   createdAt   DateTime @default(now()) @map("created_at")
 
+  @@index([ticketId])
+  @@index([serviceId])
+  @@index([addedById])
   @@map("ticket_services")
 }
 
