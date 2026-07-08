@@ -72,6 +72,23 @@
 }
 
 @layer utilities {
+	.login-page-background {
+		background-color: #34343d;
+	}
+
+	@media (min-width: 768px) {
+		.login-page-background {
+			background-image: var(--login-background);
+			background-position: left bottom;
+			background-repeat: no-repeat;
+			background-size: cover;
+			position: fixed;
+			inset: 0;
+			overflow: hidden;
+			padding-top: 8px;
+		}
+	}
+
 	.text-xl-bold {
 		font-size: 24px;
 		font-weight: 700;
