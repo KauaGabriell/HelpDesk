@@ -1,8 +1,8 @@
 import { MenuIcon } from "lucide-react";
 import { Outlet } from "react-router-dom";
 import helpdeskLogo from "../../assets/Logo_IconDark.png";
+import { RoleNavigation } from "../../components/navigation/RoleNavigation";
 import { Avatar } from "../../components/ui/Avatar/Avatar";
-import { AdminNavigation } from "../../modules/admin/components/AdminNavigation";
 import { useAuth } from "../../modules/auth/auth.store";
 
 const roleLabels = {
@@ -70,7 +70,7 @@ export function AppLayout() {
 				</div>
 
 				<nav className="flex flex-1 flex-col gap-1 px-4 py-5" aria-label="Menu">
-					<AdminNavigation />
+					{user && <RoleNavigation role={user.role} />}
 				</nav>
 
 				<div className="flex h-28 items-center gap-3 border-gray-200 border-t px-5">
