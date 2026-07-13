@@ -6,6 +6,7 @@ import { LoginPage } from "../modules/auth/pages/LoginPage";
 import { ClientTicketsPage } from "../modules/client/pages/ClientTicketsPage";
 import { NotFoundPage } from "../modules/not-found/pages/NotFoundPage";
 import { TechnicianTicketsPage } from "../modules/technician/pages/TechnicianTicketsPage";
+import { AppLayout } from "./layouts/AppLayout";
 
 export function AppRoutes() {
 	return (
@@ -15,18 +16,20 @@ export function AppRoutes() {
 				<Route path="/" element={<Navigate to="/login" replace />} />
 
 				<Route element={<ProtectedRoute />}>
-					<Route element={<RoleRoute allowedRoles={["admin"]} />}>
-						<Route path="/admin/tickets" element={<AdminTicketsPage />} />
-					</Route>
+					<Route element={<AppLayout />}>
+						<Route element={<RoleRoute allowedRoles={["admin"]} />}>
+							<Route path="/admin/tickets" element={<AdminTicketsPage />} />
+						</Route>
 
-					<Route element={<RoleRoute allowedRoles={["technician"]} />}>
-						<Route
-							path="/technician/tickets"
-							element={<TechnicianTicketsPage />}
-						/>
-					</Route>
-					<Route element={<RoleRoute allowedRoles={["client"]} />}>
-						<Route path="/client/tickets" element={<ClientTicketsPage />} />
+						<Route element={<RoleRoute allowedRoles={["technician"]} />}>
+							<Route
+								path="/technician/tickets"
+								element={<TechnicianTicketsPage />}
+							/>
+						</Route>
+						<Route element={<RoleRoute allowedRoles={["client"]} />}>
+							<Route path="/client/tickets" element={<ClientTicketsPage />} />
+						</Route>
 					</Route>
 				</Route>
 
