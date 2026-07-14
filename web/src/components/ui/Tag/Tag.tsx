@@ -22,6 +22,8 @@ export function Tag({
 	...props
 }: TagProps) {
 	const isReadOnly = variant === "readOnly";
+	const removeLabel =
+		typeof children === "string" ? `Remover ${children}` : "Remover tag";
 
 	return (
 		<span
@@ -38,7 +40,7 @@ export function Tag({
 			{onRemove && !isReadOnly && (
 				<button
 					type="button"
-					aria-label="Remover tag"
+					aria-label={removeLabel}
 					className="inline-flex items-center justify-center rounded-full text-current"
 					onClick={onRemove}
 				>
