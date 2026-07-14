@@ -6,6 +6,34 @@ type ApiRequestOptions = RequestInit & {
 	auth?: boolean;
 };
 
+function findFirstErrorMessage(value: unknown): string | null {
+	if (typeof value === "string") return value;
+	if (Array.isArray(value)) {
+		for (const item of value) {
+			const message = findFirstErrorMessage(item);
+			if (message) return message;
+		}
+		return null;
+	}
+	if (value && typeof value === "object") {
+		for (const item of Object.values(value)) {
+			const message = findFirstErrorMessage(item);
+			if (message) return message;
+		}
+	}
+	return null;
+}
+
+function getApiErrorMessage(data: unknown) {
+	if (!data || typeof data !== "object" || !("message" in data)) {
+		return "Erro ao comunicar com o servidor";
+	}
+
+	return (
+		findFirstErrorMessage(data.message) ?? "Erro ao comunicar com o servidor"
+	);
+}
+
 export async function api<TResponse>(
 	path: string,
 	options: ApiRequestOptions = {},
@@ -27,11 +55,7 @@ export async function api<TResponse>(
 	const data = await response.json().catch(() => null);
 
 	if (!response.ok) {
-		throw new HttpError(
-			response.status,
-			data?.message ?? "Erro ao comunicar com o servidor",
-			data,
-		);
+		throw new HttpError(response.status, getApiErrorMessage(data), data);
 	}
 
 	return data as TResponse;
