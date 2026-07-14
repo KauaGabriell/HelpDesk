@@ -29,6 +29,7 @@ ownTechnicianRoutes.patch("/", technicianController.updateOwnProfile);
 adminTechnicianRoutes.use(verifyAuthorization(["admin"]));
 adminTechnicianRoutes.post("/", technicianController.create);
 adminTechnicianRoutes.get("/", technicianController.list);
+adminTechnicianRoutes.get("/:id", technicianController.getByAdmin);
 adminTechnicianRoutes.patch("/:id", technicianController.updateByAdmin);
 adminTechnicianRoutes.delete("/:id", technicianController.deleteByAdmin);
 

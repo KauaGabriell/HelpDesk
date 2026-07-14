@@ -74,6 +74,12 @@ export class TechnicianService {
 					role: true,
 					isActive: true,
 					mustChangePassword: true,
+					technicianProfile: {
+						select: {
+							avatarUrl: true,
+							availability: true,
+						},
+					},
 				},
 				orderBy: {
 					createdAt: "desc",
@@ -92,6 +98,30 @@ export class TechnicianService {
 				perPage: limit,
 			},
 		};
+	}
+
+	async getByAdmin(id: string) {
+		const technician = await prisma.user.findFirst({
+			where: { id, role: Role.technician },
+			select: {
+				id: true,
+				name: true,
+				email: true,
+				role: true,
+				isActive: true,
+				mustChangePassword: true,
+				technicianProfile: {
+					select: {
+						avatarUrl: true,
+						availability: true,
+					},
+				},
+			},
+		});
+
+		if (!technician) throw new AppError(404, "Técnico não encontrado");
+
+		return technician;
 	}
 
 	async getOwnProfile(userId: string) {
@@ -230,11 +260,16 @@ export class TechnicianService {
 				},
 			});
 
-			const updatedTechnicianProfile = await prisma.technicianProfile.update({
+			const updatedTechnicianProfile = await prisma.technicianProfile.upsert({
 				where: { userId: id },
-				data: {
+				update: {
 					avatarUrl: profileUpdateData.avatarUrl,
 					availability: profileUpdateData.availability,
+				},
+				create: {
+					userId: id,
+					avatarUrl: profileUpdateData.avatarUrl,
+					availability: profileUpdateData.availability ?? [],
 				},
 			});
 			return {

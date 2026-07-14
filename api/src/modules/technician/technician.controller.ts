@@ -28,6 +28,13 @@ class TechnicianController {
 		return res.status(200).json(technicians);
 	}
 
+	async getByAdmin(req: Request, res: Response) {
+		const { id } = technicianIdParamsSchema.parse(req.params);
+		const technician = await technicianService.getByAdmin(id);
+
+		return res.status(200).json(technician);
+	}
+
 	async getOwnProfile(req: Request, res: Response) {
 		const userId = req.user?.id;
 		if (!userId) throw new AppError(401, "Não autorizado");
