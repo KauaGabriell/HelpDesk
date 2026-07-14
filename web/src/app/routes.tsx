@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "../components/guards/ProtectedRoute";
 import { RoleRoute } from "../components/guards/RoleRoute";
 import { AdminClientsPage } from "../modules/admin/clients/pages/AdminClientsPage";
+import { AdminServicesPage } from "../modules/admin/services/pages/AdminServicesPage";
 import { AdminTechnicianFormPage } from "../modules/admin/technicians/pages/AdminTechnicianFormPage";
 import { AdminTechniciansPage } from "../modules/admin/technicians/pages/AdminTechniciansPage";
 import { AdminTicketDetailsPage } from "../modules/admin/tickets/pages/AdminTicketDetailsPage";
@@ -23,6 +24,7 @@ export function AppRoutes() {
 					<Route element={<AppLayout />}>
 						<Route element={<RoleRoute allowedRoles={["admin"]} />}>
 							<Route path="/admin/clients" element={<AdminClientsPage />} />
+							<Route path="/admin/services" element={<AdminServicesPage />} />
 							<Route path="/admin/tickets" element={<AdminTicketsPage />} />
 							<Route
 								path="/admin/tickets/:ticketId"

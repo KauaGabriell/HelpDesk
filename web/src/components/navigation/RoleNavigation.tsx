@@ -20,7 +20,7 @@ const navigationByRole: Record<UserRole, NavigationItem[]> = {
 		{ label: "Chamados", icon: ClipboardListIcon, to: "/admin/tickets" },
 		{ label: "Técnicos", icon: UsersRoundIcon, to: "/admin/technicians" },
 		{ label: "Clientes", icon: BriefcaseBusinessIcon, to: "/admin/clients" },
-		{ label: "Serviços", icon: WrenchIcon },
+		{ label: "Serviços", icon: WrenchIcon, to: "/admin/services" },
 	],
 	technician: [
 		{
