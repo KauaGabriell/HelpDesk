@@ -1,4 +1,5 @@
-import { MenuIcon } from "lucide-react";
+import { MenuIcon, XIcon } from "lucide-react";
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import helpdeskLogo from "../../assets/Logo_IconDark.png";
 import { RoleNavigation } from "../../components/navigation/RoleNavigation";
@@ -8,25 +9,32 @@ import { useAuth } from "../../modules/auth/auth.store";
 const roleLabels = {
 	admin: "ADMIN",
 	client: "CLIENTE",
-	technician: "TECNICO",
+	technician: "TÉCNICO",
 } as const;
 
 export function AppLayout() {
 	const { user } = useAuth();
+	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 	const roleLabel = user ? roleLabels[user.role] : "";
-	const userName = user?.name ?? "Usuario Admin";
+	const userName = user?.name ?? "Usuário Admin";
 	const userEmail = user?.email ?? "user.adm@test.com";
 
 	return (
 		<div className="min-h-screen bg-gray-100 md:flex md:items-start md:pt-3">
-			<header className="flex h-18 items-center justify-between bg-gray-100 px-5 md:hidden">
+			<header className="relative z-40 flex h-18 items-center justify-between bg-gray-100 px-5 md:hidden">
 				<div className="flex items-center gap-3">
 					<button
 						type="button"
 						className="inline-flex h-10 w-10 items-center justify-center rounded-sm bg-gray-200 text-gray-600 transition-colors hover:bg-gray-300"
-						aria-label="Abrir menu"
+						aria-label={isMobileMenuOpen ? "Fechar menu" : "Abrir menu"}
+						aria-expanded={isMobileMenuOpen}
+						onClick={() => setIsMobileMenuOpen((isOpen) => !isOpen)}
 					>
-						<MenuIcon className="h-5 w-5" />
+						{isMobileMenuOpen ? (
+							<XIcon className="h-5 w-5" />
+						) : (
+							<MenuIcon className="h-5 w-5" />
+						)}
 					</button>
 
 					<div className="flex items-center gap-2">
@@ -49,6 +57,20 @@ export function AppLayout() {
 
 				<Avatar name={userName} size="md" />
 			</header>
+
+			{isMobileMenuOpen && user ? (
+				<div className="fixed inset-0 top-18 z-30 bg-gray-100/50 md:hidden">
+					<nav
+						className="w-full bg-gray-100 px-4 py-4 shadow-lg"
+						aria-label="Menu"
+					>
+						<RoleNavigation
+							role={user.role}
+							onNavigate={() => setIsMobileMenuOpen(false)}
+						/>
+					</nav>
+				</div>
+			) : null}
 
 			<aside className="hidden h-[calc(100vh-12px)] w-50 shrink-0 flex-col bg-gray-100 md:flex">
 				<div className="flex h-23 items-center gap-3 border-gray-200 border-b px-5">
