@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "../components/guards/ProtectedRoute";
 import { RoleRoute } from "../components/guards/RoleRoute";
+import { TechnicianPasswordGuard } from "../components/guards/TechnicianPasswordGuard";
 import { AdminClientsPage } from "../modules/admin/clients/pages/AdminClientsPage";
 import { AdminServicesPage } from "../modules/admin/services/pages/AdminServicesPage";
 import { AdminTechnicianFormPage } from "../modules/admin/technicians/pages/AdminTechnicianFormPage";
@@ -10,7 +11,9 @@ import { AdminTicketsPage } from "../modules/admin/tickets/pages/AdminTicketsPag
 import { LoginPage } from "../modules/auth/pages/LoginPage";
 import { ClientTicketsPage } from "../modules/client/pages/ClientTicketsPage";
 import { NotFoundPage } from "../modules/not-found/pages/NotFoundPage";
-import { TechnicianTicketsPage } from "../modules/technician/pages/TechnicianTicketsPage";
+import { TechnicianChangePasswordPage } from "../modules/technician/profile/pages/TechnicianChangePasswordPage";
+import { TechnicianTicketDetailsPage } from "../modules/technician/tickets/pages/TechnicianTicketDetailsPage";
+import { TechnicianTicketsPage } from "../modules/technician/tickets/pages/TechnicianTicketsPage";
 import { AppLayout } from "./layouts/AppLayout";
 
 export function AppRoutes() {
@@ -46,9 +49,19 @@ export function AppRoutes() {
 
 						<Route element={<RoleRoute allowedRoles={["technician"]} />}>
 							<Route
-								path="/technician/tickets"
-								element={<TechnicianTicketsPage />}
+								path="/technician/change-password"
+								element={<TechnicianChangePasswordPage />}
 							/>
+							<Route element={<TechnicianPasswordGuard />}>
+								<Route
+									path="/technician/tickets"
+									element={<TechnicianTicketsPage />}
+								/>
+								<Route
+									path="/technician/tickets/:ticketId"
+									element={<TechnicianTicketDetailsPage />}
+								/>
+							</Route>
 						</Route>
 						<Route element={<RoleRoute allowedRoles={["client"]} />}>
 							<Route path="/client/tickets" element={<ClientTicketsPage />} />
