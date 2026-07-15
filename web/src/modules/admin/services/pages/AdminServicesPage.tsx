@@ -146,15 +146,15 @@ export function AdminServicesPage() {
 						<table className="w-full table-fixed border-collapse text-left">
 							<thead className="border-gray-500 border-b">
 								<tr className="h-11 text-gray-400 text-xs-regular">
-									<th className="w-[42%] px-3 font-normal md:w-[48%]">
+									<th className="w-[38%] px-3 font-normal md:w-[45%]">
 										Título
 									</th>
-									<th className="w-[28%] px-3 font-normal md:w-[28%]">Valor</th>
-									<th className="w-[20%] px-2 font-normal md:w-[16%]">
+									<th className="w-[25%] px-3 font-normal md:w-[18%]">Valor</th>
+									<th className="w-[17%] px-2 font-normal md:w-[16%]">
 										Status
 									</th>
 									<th
-										className="w-[10%] px-2 font-normal md:w-[8%]"
+										className="w-[20%] px-2 font-normal md:w-[21%]"
 										aria-label="Ações"
 									/>
 								</tr>
@@ -196,23 +196,23 @@ export function AdminServicesPage() {
 												</div>
 											</td>
 											<td className="px-2">
-												<div className="flex items-center justify-end gap-1.5">
+												<div className="flex min-w-0 items-center justify-end gap-1.5 whitespace-nowrap">
 													<button
 														type="button"
-														className="hidden h-6 items-center gap-1 rounded-sm px-1.5 text-gray-300 text-xs-regular hover:bg-gray-500 hover:text-gray-100 disabled:cursor-not-allowed disabled:opacity-60 md:inline-flex"
+														className="hidden h-8 shrink-0 items-center gap-1 rounded-sm px-2 text-gray-300 text-xs-regular hover:bg-gray-500 hover:text-gray-100 disabled:cursor-not-allowed disabled:opacity-60 md:inline-flex"
 														disabled={isUpdatingStatus}
 														onClick={() => void handleStatusChange(service)}
 													>
 														{service.isActive ? (
-															<BanIcon className="h-3.5 w-3.5" />
+															<BanIcon className="h-4 w-4" />
 														) : (
-															<RotateCcwIcon className="h-3.5 w-3.5" />
+															<RotateCcwIcon className="h-4 w-4" />
 														)}
 														{service.isActive ? "Desativar" : "Reativar"}
 													</button>
 													<button
 														type="button"
-														className="inline-flex h-6 w-6 items-center justify-center rounded-sm bg-gray-500 text-gray-300 transition-colors hover:bg-gray-400 hover:text-gray-100 disabled:cursor-not-allowed disabled:opacity-60 md:hidden"
+														className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-gray-500 text-gray-300 transition-colors hover:bg-gray-400 hover:text-gray-100 disabled:cursor-not-allowed disabled:opacity-60 md:hidden"
 														aria-label={
 															service.isActive
 																? `Desativar ${service.name}`
@@ -222,19 +222,19 @@ export function AdminServicesPage() {
 														onClick={() => void handleStatusChange(service)}
 													>
 														{service.isActive ? (
-															<BanIcon className="h-3.5 w-3.5" />
+															<BanIcon className="h-4 w-4" />
 														) : (
-															<RotateCcwIcon className="h-3.5 w-3.5" />
+															<RotateCcwIcon className="h-4 w-4" />
 														)}
 													</button>
 													<button
 														type="button"
-														className="inline-flex h-6 w-6 items-center justify-center rounded-sm bg-gray-500 text-gray-300 transition-colors hover:bg-gray-400 hover:text-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+														className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-gray-500 text-gray-300 transition-colors hover:bg-gray-400 hover:text-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
 														aria-label={`Editar ${service.name}`}
 														disabled={isUpdatingStatus}
 														onClick={() => setServiceToEdit(service)}
 													>
-														<PencilLineIcon className="h-3.5 w-3.5" />
+														<PencilLineIcon className="h-4 w-4" />
 													</button>
 												</div>
 											</td>
