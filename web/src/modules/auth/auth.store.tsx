@@ -21,6 +21,7 @@ type AuthContextValue = {
 	isAuthenticated: boolean;
 	isLoading: boolean;
 	setAuth: (data: { token: string; user: AuthUser }) => void;
+	updateUser: (data: Partial<AuthUser>) => void;
 	logout: () => void;
 };
 
@@ -47,6 +48,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		setTokenState(null);
 		setUser(null);
 		setIsLoading(false);
+	}, []);
+
+	const updateUser = useCallback((data: Partial<AuthUser>) => {
+		setUser((currentUser) =>
+			currentUser ? { ...currentUser, ...data } : currentUser,
+		);
 	}, []);
 
 	useEffect(() => {
@@ -91,9 +98,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			isAuthenticated: Boolean(token),
 			isLoading,
 			setAuth,
+			updateUser,
 			logout,
 		}),
-		[token, user, isLoading, setAuth, logout],
+		[token, user, isLoading, setAuth, updateUser, logout],
 	);
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

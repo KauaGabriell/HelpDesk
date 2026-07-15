@@ -3,7 +3,7 @@ import type { ComponentProps } from "react";
 type AvatarSize = "sm" | "md";
 
 type AvatarProps = ComponentProps<"div"> & {
-	name: string;
+	name?: string | null;
 	src?: string | null;
 	size?: AvatarSize;
 };
@@ -13,7 +13,9 @@ const avatarSizes: Record<AvatarSize, string> = {
 	md: "h-8 w-8 text-xs-bold",
 };
 
-function getInitials(name: string) {
+function getInitials(name?: string | null) {
+	if (!name) return "?";
+
 	const words = name.trim().split(/\s+/).filter(Boolean);
 
 	if (words.length === 0) {
@@ -44,11 +46,15 @@ export function Avatar({
 			]
 				.filter(Boolean)
 				.join(" ")}
-			title={name}
+			title={name ?? "Avatar"}
 			{...props}
 		>
 			{src ? (
-				<img src={src} alt={name} className="h-full w-full object-cover" />
+				<img
+					src={src}
+					alt={name ?? "Avatar"}
+					className="h-full w-full object-cover"
+				/>
 			) : (
 				initials
 			)}

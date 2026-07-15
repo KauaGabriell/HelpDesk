@@ -1,10 +1,11 @@
-import { MenuIcon, XIcon } from "lucide-react";
+import { CircleUserRoundIcon, LogOutIcon, MenuIcon, XIcon } from "lucide-react";
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import helpdeskLogo from "../../assets/Logo_IconDark.png";
 import { RoleNavigation } from "../../components/navigation/RoleNavigation";
 import { Avatar } from "../../components/ui/Avatar/Avatar";
 import { useAuth } from "../../modules/auth/auth.store";
+import { TechnicianProfileModal } from "../../modules/technician/profile/TechnicianProfileModal";
 
 const roleLabels = {
 	admin: "ADMIN",
@@ -13,11 +14,24 @@ const roleLabels = {
 } as const;
 
 export function AppLayout() {
-	const { user } = useAuth();
+	const { user, logout } = useAuth();
+	const navigate = useNavigate();
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+	const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+	const [isProfileOpen, setIsProfileOpen] = useState(false);
 	const roleLabel = user ? roleLabels[user.role] : "";
 	const userName = user?.name ?? "Usuário Admin";
 	const userEmail = user?.email ?? "user.adm@test.com";
+
+	function handleLogout() {
+		logout();
+		navigate("/login", { replace: true });
+	}
+
+	function openProfile() {
+		setIsUserMenuOpen(false);
+		setIsProfileOpen(true);
+	}
 
 	return (
 		<div className="min-h-screen bg-gray-100 md:flex md:items-start md:pt-3">
@@ -55,7 +69,36 @@ export function AppLayout() {
 					</div>
 				</div>
 
-				<Avatar name={userName} size="md" />
+				<div className="relative">
+					<button
+						type="button"
+						className="rounded-full focus:outline-none focus:ring-2 focus:ring-brand-base"
+						aria-label="Abrir menu do usuário"
+						onClick={() => setIsUserMenuOpen((isOpen) => !isOpen)}
+					>
+						<Avatar name={userName} size="md" />
+					</button>
+					{isUserMenuOpen ? (
+						<div className="absolute right-0 top-11 z-50 w-40 rounded-sm bg-gray-100 p-2 shadow-lg">
+							{user?.role === "technician" ? (
+								<button
+									type="button"
+									className="flex w-full items-center gap-2 px-2 py-2 text-left text-gray-300 text-xs-regular hover:bg-gray-200"
+									onClick={openProfile}
+								>
+									<CircleUserRoundIcon className="h-4 w-4" /> Perfil
+								</button>
+							) : null}
+							<button
+								type="button"
+								className="flex w-full items-center gap-2 px-2 py-2 text-left text-danger text-xs-regular hover:bg-gray-200"
+								onClick={handleLogout}
+							>
+								<LogOutIcon className="h-4 w-4" /> Sair
+							</button>
+						</div>
+					) : null}
+				</div>
 			</header>
 
 			{isMobileMenuOpen && user ? (
@@ -95,18 +138,54 @@ export function AppLayout() {
 					{user && <RoleNavigation role={user.role} />}
 				</nav>
 
-				<div className="flex h-28 items-center gap-3 border-gray-200 border-t px-5">
-					<Avatar name={userName} size="md" />
-					<div className="min-w-0">
-						<p className="truncate text-gray-600 text-xs-regular">{userName}</p>
-						<p className="truncate text-gray-400 text-xxs-bold">{userEmail}</p>
-					</div>
+				<div className="relative border-gray-200 border-t">
+					<button
+						type="button"
+						className="flex h-28 w-full items-center gap-3 px-5 text-left hover:bg-gray-200"
+						onClick={() => setIsUserMenuOpen((isOpen) => !isOpen)}
+					>
+						<Avatar name={userName} size="md" />
+						<div className="min-w-0">
+							<p className="truncate text-gray-600 text-xs-regular">
+								{userName}
+							</p>
+							<p className="truncate text-gray-400 text-xxs-bold">
+								{userEmail}
+							</p>
+						</div>
+					</button>
+					{isUserMenuOpen ? (
+						<div className="absolute bottom-28 left-4 z-50 w-42 rounded-sm bg-gray-100 p-2 shadow-lg">
+							{user?.role === "technician" ? (
+								<button
+									type="button"
+									className="flex w-full items-center gap-2 px-2 py-2 text-left text-gray-300 text-xs-regular hover:bg-gray-200"
+									onClick={openProfile}
+								>
+									<CircleUserRoundIcon className="h-4 w-4" /> Perfil
+								</button>
+							) : null}
+							<button
+								type="button"
+								className="flex w-full items-center gap-2 px-2 py-2 text-left text-danger text-xs-regular hover:bg-gray-200"
+								onClick={handleLogout}
+							>
+								<LogOutIcon className="h-4 w-4" /> Sair
+							</button>
+						</div>
+					) : null}
 				</div>
 			</aside>
 
 			<main className="min-h-[calc(100vh-72px)] rounded-t-2xl bg-gray-600 px-5 py-6 md:min-h-[calc(100vh-12px)] md:flex-1 md:rounded-tl-[20px] md:rounded-tr-none md:px-12 md:py-13">
 				<Outlet />
 			</main>
+			{user?.role === "technician" ? (
+				<TechnicianProfileModal
+					isOpen={isProfileOpen}
+					onClose={() => setIsProfileOpen(false)}
+				/>
+			) : null}
 		</div>
 	);
 }

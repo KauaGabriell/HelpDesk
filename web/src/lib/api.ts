@@ -40,13 +40,15 @@ export async function api<TResponse>(
 ) {
 	const { auth = false, headers, ...fetchOptions } = options;
 	const token = getAuthToken();
+	const isFormData =
+		typeof FormData !== "undefined" && fetchOptions.body instanceof FormData;
 	const baseUrl = env.apiUrl.endsWith("/") ? env.apiUrl : `${env.apiUrl}/`;
 	const requestPath = path.startsWith("/") ? path.slice(1) : path;
 
 	const response = await fetch(new URL(requestPath, baseUrl), {
 		...fetchOptions,
 		headers: {
-			"Content-Type": "application/json",
+			...(!isFormData ? { "Content-Type": "application/json" } : {}),
 			...(auth && token ? { Authorization: `Bearer ${token}` } : {}),
 			...headers,
 		},
