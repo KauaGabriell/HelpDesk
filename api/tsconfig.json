@@ -5,6 +5,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
+    "types": ["node", "jest"],
     "skipLibCheck": true
   },
   "$schema": "https://www.schemastore.org/tsconfig"
