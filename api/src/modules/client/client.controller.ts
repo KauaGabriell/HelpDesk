@@ -3,6 +3,7 @@ import { paginationQuerySchema } from "../../shared/pagination.schema";
 import { AppError } from "../../utils/AppError";
 import { fileSchema } from "../upload/upload.schema";
 import {
+	changeClientPasswordSchema,
 	clientIdParamsSchema,
 	updateClientByAdminSchema,
 	updateOwnClientProfileSchema,
@@ -12,6 +13,18 @@ import { ClientService } from "./client.service";
 const clientService = new ClientService();
 
 class ClientController {
+	async changeOwnPassword(req: Request, res: Response) {
+		const userId = req.user?.id;
+		if (!userId) throw new AppError(401, "Não autorizado");
+
+		const input = changeClientPasswordSchema.parse(req.body);
+		const updatedClient = await clientService.changeOwnPassword({
+			userId,
+			...input,
+		});
+		res.status(200).json(updatedClient);
+	}
+
 	async list(req: Request, res: Response) {
 		const query = paginationQuerySchema.parse(req.query);
 

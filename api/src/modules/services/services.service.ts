@@ -8,6 +8,19 @@ import type {
 } from "./services.schema";
 
 class ServicesService {
+	async listActiveForClient() {
+		return prisma.service.findMany({
+			where: { isActive: true },
+			select: {
+				id: true,
+				name: true,
+				price: true,
+				serviceCategory: true,
+			},
+			orderBy: { name: "asc" },
+		});
+	}
+
 	async createByAdmin(input: createServiceInput) {
 		const service = await prisma.service.create({
 			data: {

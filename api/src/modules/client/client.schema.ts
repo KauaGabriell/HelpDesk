@@ -23,6 +23,11 @@ export const updateOwnClientProfileSchema = z
 		message: "Altere pelo menos um campo",
 	});
 
+export const changeClientPasswordSchema = z.object({
+	oldPassword: z.string().min(5, "A senha deve conter no mínimo 5 dígitos"),
+	newPassword: z.string().min(5, "A senha deve conter no mínimo 5 dígitos"),
+});
+
 export type UpdateClientByAdminInput = z.infer<
 	typeof updateClientByAdminSchema
 >;
@@ -30,11 +35,18 @@ export type UpdateClientByAdminInput = z.infer<
 export type UpdateOwnClientProfileInput = z.infer<
 	typeof updateOwnClientProfileSchema
 >;
+export type ChangeClientPasswordInput = z.infer<
+	typeof changeClientPasswordSchema
+>;
 
 export type UpdateClientByAdminServiceInput = UpdateClientByAdminInput & {
 	userId: string;
 };
 
 export type UpdateOwnClientProfileServiceInput = UpdateOwnClientProfileInput & {
+	userId: string;
+};
+
+export type ChangeClientPasswordServiceInput = ChangeClientPasswordInput & {
 	userId: string;
 };

@@ -2,12 +2,17 @@ import { Role } from "../../generated/prisma/enums";
 import { prisma } from "../../libs/prisma";
 import type { PaginationQueryInput } from "../../shared/pagination.schema";
 import { AppError } from "../../utils/AppError";
+import {
+	hashPassword,
+	verifyPassword,
+} from "../../utils/hashAndVerifyPassword";
 import { toPublicUser } from "../auth/auth.mappers";
 import type { FileServiceInput } from "../upload/upload.schema";
 import { UploadService } from "../upload/upload.service";
 import { toPublicClient } from "./client.mappers";
 import type {
 	UpdateClientByAdminServiceInput,
+	ChangeClientPasswordServiceInput,
 	UpdateOwnClientProfileServiceInput,
 } from "./client.schema";
 
@@ -19,6 +24,38 @@ type UpdateClientAvatarServiceInput = {
 };
 
 class ClientService {
+	async changeOwnPassword({
+		userId,
+		oldPassword,
+		newPassword,
+	}: ChangeClientPasswordServiceInput) {
+		const client = await prisma.user.findFirst({
+			where: { id: userId, role: Role.client },
+			select: { id: true, passwordHash: true },
+		});
+		if (!client) throw new AppError(404, "Cliente não encontrado");
+
+		const passwordMatches = await verifyPassword(oldPassword, client.passwordHash);
+		if (!passwordMatches) throw new AppError(400, "Senha atual inválida");
+
+		const isCurrentPassword = await verifyPassword(
+			newPassword,
+			client.passwordHash,
+		);
+		if (isCurrentPassword) {
+			throw new AppError(
+				400,
+				"A nova senha deve ser diferente da senha atual",
+			);
+		}
+
+		return prisma.user.update({
+			where: { id: client.id },
+			data: { passwordHash: await hashPassword(newPassword) },
+			select: { id: true, name: true, email: true },
+		});
+	}
+
 	async listByAdmin(query: PaginationQueryInput) {
 		const { page, limit } = query;
 		const skip = (page - 1) * limit;

@@ -20,6 +20,7 @@ adminClientRoutes.patch("/:userId", clientController.updateByAdmin);
 adminClientRoutes.delete("/:userId", clientController.deleteByAdmin);
 
 ownClientRoutes.use(verifyAuthorization(["client"]));
+ownClientRoutes.patch("/password", clientController.changeOwnPassword);
 ownClientRoutes.get("/", clientController.getOwnProfile);
 ownClientRoutes.patch("/", clientController.updateOwnProfile);
 ownClientRoutes.patch(

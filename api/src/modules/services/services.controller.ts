@@ -12,6 +12,11 @@ import { ServicesService } from "./services.service";
 const servicesService = new ServicesService();
 
 class ServiceController {
+	async listActiveForClient(_req: Request, res: Response) {
+		const services = await servicesService.listActiveForClient();
+		res.status(200).json(services);
+	}
+
 	async createByAdmin(req: Request, res: Response) {
 		const input = createServiceSchema.parse(req.body);
 

@@ -227,6 +227,13 @@ class TicketsService {
 					id: true,
 					title: true,
 					status: true,
+					updatedAt: true,
+					technician: {
+						select: {
+							name: true,
+							technicianProfile: { select: { avatarUrl: true } },
+						},
+					},
 					ticketServices: {
 						select: {
 							title: true,

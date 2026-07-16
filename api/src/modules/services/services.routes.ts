@@ -7,6 +7,13 @@ const serviceRoutes = Router();
 const serviceController = new ServiceController();
 
 serviceRoutes.use(verifyAuthentication);
+
+serviceRoutes.get(
+	"/active",
+	verifyAuthorization(["client"]),
+	serviceController.listActiveForClient,
+);
+
 serviceRoutes.use(verifyAuthorization(["admin"]));
 
 serviceRoutes.post("/", serviceController.createByAdmin);
