@@ -5,6 +5,7 @@
 	"main": "index.js",
 	"scripts": {
 		"build": "esbuild src/server.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/server.js",
+		"db:bootstrap": "tsx prisma/bootstrap-admin.ts",
 		"dev": "tsx --watch src/server.ts",
 		"start": "node dist/server.js",
 		"test": "dotenv -e .env.test -- node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
