@@ -119,7 +119,7 @@ model TicketService {
   description String?
   ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   service     Service? @relation(fields: [serviceId], references: [id])
-  addedBy     User     @relation(fields: [addedById], references: [id])
+  addedBy     User     @relation(fields: [addedById], references: [id], onDelete: Cascade)
   price       Decimal
   createdAt   DateTime @default(now()) @map("created_at")
 
