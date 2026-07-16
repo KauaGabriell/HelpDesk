@@ -3,11 +3,14 @@ import { Role } from "../../src/generated/prisma/enums";
 import { prisma } from "../../src/libs/prisma";
 import { hashPassword } from "../../src/utils/hashAndVerifyPassword";
 
-type CreateTestUserInput = {
+export type CreateTestUserInput = {
 	name?: string;
 	email?: string;
 	password?: string;
 	role?: Role;
+	isActive?: boolean;
+	mustChangePassword?: boolean;
+	availability?: string[];
 };
 
 export async function createTestUser({
@@ -15,6 +18,9 @@ export async function createTestUser({
 	email = `user-${crypto.randomUUID()}@test.com`,
 	password = "123456",
 	role = Role.client,
+	isActive = true,
+	mustChangePassword = false,
+	availability = [],
 }: CreateTestUserInput = {}) {
 	const passwordHash = await hashPassword(password);
 	const user = await prisma.user.create({
@@ -23,10 +29,12 @@ export async function createTestUser({
 			email,
 			passwordHash,
 			role,
+			isActive,
+			mustChangePassword,
 			...(role === Role.client
 				? { clientProfile: { create: {} } }
 				: role === Role.technician
-					? { technicianProfile: { create: { availability: [] } } }
+					? { technicianProfile: { create: { availability } } }
 					: {}),
 		},
 	});

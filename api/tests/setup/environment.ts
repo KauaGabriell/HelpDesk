@@ -1,3 +1,7 @@
+import { afterAll, afterEach } from "@jest/globals";
+import { prisma } from "../../src/libs/prisma";
+import { clearDatabase } from "../helpers/prisma";
+
 function assertTestDatabase() {
 	const databaseUrl = process.env.DATABASE_URL;
 	if (!databaseUrl) throw new Error("DATABASE_URL de teste não configurada.");
@@ -11,3 +15,11 @@ function assertTestDatabase() {
 }
 
 assertTestDatabase();
+
+afterEach(async () => {
+	await clearDatabase();
+});
+
+afterAll(async () => {
+	await prisma.$disconnect();
+});
