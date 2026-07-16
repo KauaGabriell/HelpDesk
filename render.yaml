@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     rootDir: api
-    buildCommand: npm ci && npx prisma generate && npx prisma migrate deploy && npm run db:bootstrap && npm run build
+    buildCommand: npm ci && npx prisma generate && npx prisma migrate deploy && npm run build
     startCommand: npm start
     healthCheckPath: /health
     autoDeployTrigger: commit
@@ -19,11 +19,6 @@ services:
         generateValue: true
       - key: CORS_ORIGINS
         value: https://help-desk-lovat.vercel.app,http://localhost:5173,http://localhost:5174
-      - key: BOOTSTRAP_ADMIN_EMAIL
-        sync: false
-      - key: BOOTSTRAP_ADMIN_PASSWORD_HASH
-        sync: false
-
 databases:
   - name: helpdesk-db
     plan: free
