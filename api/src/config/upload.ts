@@ -1,15 +1,11 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { diskStorage, type Options } from "multer";
 import { AppError } from "../utils/AppError";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const TMP_FOLDER = path.resolve(__dirname, "..", "..", "tmp");
-const UPLOADS_FOLDER = path.resolve(__dirname, "..", "..", "uploads");
+const TMP_FOLDER = path.resolve(process.cwd(), "tmp");
+const UPLOADS_FOLDER = path.resolve(process.cwd(), "uploads");
 const UPLOADS_URL = "/uploads";
 
 const MAX_MB = 3;
