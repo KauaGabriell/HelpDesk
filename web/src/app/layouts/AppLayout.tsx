@@ -5,6 +5,7 @@ import helpdeskLogo from "../../assets/Logo_IconDark.png";
 import { RoleNavigation } from "../../components/navigation/RoleNavigation";
 import { Avatar } from "../../components/ui/Avatar/Avatar";
 import { useAuth } from "../../modules/auth/auth.store";
+import { ClientProfileModal } from "../../modules/client/profile/ClientProfileModal";
 import { TechnicianProfileModal } from "../../modules/technician/profile/TechnicianProfileModal";
 
 const roleLabels = {
@@ -34,7 +35,7 @@ export function AppLayout() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-100 md:flex md:items-start md:pt-3">
+		<div className="min-h-screen overflow-x-hidden bg-gray-100 md:flex md:items-start md:pt-3">
 			<header className="relative z-40 flex h-18 items-center justify-between bg-gray-100 px-5 md:hidden">
 				<div className="flex items-center gap-3">
 					<button
@@ -80,7 +81,7 @@ export function AppLayout() {
 					</button>
 					{isUserMenuOpen ? (
 						<div className="absolute right-0 top-11 z-50 w-40 rounded-sm bg-gray-100 p-2 shadow-lg">
-							{user?.role === "technician" ? (
+							{user?.role !== "admin" ? (
 								<button
 									type="button"
 									className="flex w-full items-center gap-2 px-2 py-2 text-left text-gray-300 text-xs-regular hover:bg-gray-200"
@@ -156,7 +157,7 @@ export function AppLayout() {
 					</button>
 					{isUserMenuOpen ? (
 						<div className="absolute bottom-28 left-4 z-50 w-42 rounded-sm bg-gray-100 p-2 shadow-lg">
-							{user?.role === "technician" ? (
+							{user?.role !== "admin" ? (
 								<button
 									type="button"
 									className="flex w-full items-center gap-2 px-2 py-2 text-left text-gray-300 text-xs-regular hover:bg-gray-200"
@@ -177,11 +178,17 @@ export function AppLayout() {
 				</div>
 			</aside>
 
-			<main className="min-h-[calc(100vh-72px)] rounded-t-2xl bg-gray-600 px-5 py-6 md:min-h-[calc(100vh-12px)] md:flex-1 md:rounded-tl-[20px] md:rounded-tr-none md:px-12 md:py-13">
+			<main className="min-h-[calc(100vh-72px)] min-w-0 rounded-t-2xl bg-gray-600 px-5 py-6 md:min-h-[calc(100vh-12px)] md:flex-1 md:rounded-tl-[20px] md:rounded-tr-none md:px-12 md:py-13">
 				<Outlet />
 			</main>
 			{user?.role === "technician" ? (
 				<TechnicianProfileModal
+					isOpen={isProfileOpen}
+					onClose={() => setIsProfileOpen(false)}
+				/>
+			) : null}
+			{user?.role === "client" ? (
+				<ClientProfileModal
 					isOpen={isProfileOpen}
 					onClose={() => setIsProfileOpen(false)}
 				/>

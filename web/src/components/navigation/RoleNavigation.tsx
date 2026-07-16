@@ -31,7 +31,7 @@ const navigationByRole: Record<UserRole, NavigationItem[]> = {
 	],
 	client: [
 		{ label: "Meus chamados", icon: ClipboardListIcon, to: "/client/tickets" },
-		{ label: "Criar chamado", icon: PlusIcon },
+		{ label: "Criar chamado", icon: PlusIcon, to: "/client/tickets/new" },
 	],
 };
 

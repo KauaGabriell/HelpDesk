@@ -9,7 +9,9 @@ import { AdminTechniciansPage } from "../modules/admin/technicians/pages/AdminTe
 import { AdminTicketDetailsPage } from "../modules/admin/tickets/pages/AdminTicketDetailsPage";
 import { AdminTicketsPage } from "../modules/admin/tickets/pages/AdminTicketsPage";
 import { LoginPage } from "../modules/auth/pages/LoginPage";
-import { ClientTicketsPage } from "../modules/client/pages/ClientTicketsPage";
+import { ClientTicketDetailsPage } from "../modules/client/tickets/pages/ClientTicketDetailsPage";
+import { ClientTicketsPage } from "../modules/client/tickets/pages/ClientTicketsPage";
+import { CreateClientTicketPage } from "../modules/client/tickets/pages/CreateClientTicketPage";
 import { NotFoundPage } from "../modules/not-found/pages/NotFoundPage";
 import { TechnicianChangePasswordPage } from "../modules/technician/profile/pages/TechnicianChangePasswordPage";
 import { TechnicianTicketDetailsPage } from "../modules/technician/tickets/pages/TechnicianTicketDetailsPage";
@@ -65,6 +67,14 @@ export function AppRoutes() {
 						</Route>
 						<Route element={<RoleRoute allowedRoles={["client"]} />}>
 							<Route path="/client/tickets" element={<ClientTicketsPage />} />
+							<Route
+								path="/client/tickets/new"
+								element={<CreateClientTicketPage />}
+							/>
+							<Route
+								path="/client/tickets/:ticketId"
+								element={<ClientTicketDetailsPage />}
+							/>
 						</Route>
 					</Route>
 				</Route>
