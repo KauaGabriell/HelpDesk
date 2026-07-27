@@ -197,4 +197,6 @@ Os testes do back-end são testes de integração HTTP com Jest e Supertest. Ele
 
 Existe uma demonstração em vídeo do fluxo Admin → Cliente → Técnico: criação de serviço, abertura de chamado, início do atendimento, inclusão de serviço adicional e encerramento.
 
+Assista à publicação no LinkedIn: [Demonstração do HelpDesk](https://www.linkedin.com/posts/kauagabriell1_fullstack-react-nodejs-ugcPost-7487555408384020480-ZmiG/).
+
 O vídeo é gerado localmente em `docs/video/` e não é versionado pelo Git.
